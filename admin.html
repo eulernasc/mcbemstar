@@ -353,6 +353,34 @@ tr:last-child td{border-bottom:none;}
   </main>
 </div>
 
+<!-- MODAL CONCLUIR (pagamento) -->
+<div class="modal-bg" id="modal-concluir">
+  <div class="modal">
+    <h3 class="modal-title">Concluir Atendimento</h3>
+    <input type="hidden" id="mcl-id">
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px" id="mcl-info"></p>
+    <div class="form-group">
+      <label class="form-lbl">Valor cobrado (R$)</label>
+      <input type="number" step="0.01" class="form-input" id="mcl-valor">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Forma de pagamento</label>
+      <select class="form-select" id="mcl-pagamento">
+        <option value="pix">Pix</option>
+        <option value="dinheiro">Dinheiro</option>
+        <option value="cartao_debito">Cartão de débito</option>
+        <option value="cartao_credito">Cartão de crédito</option>
+        <option value="outro">Outro</option>
+      </select>
+    </div>
+    <p style="font-size:10.5px;color:var(--gray2);margin-top:-6px">Isso marca como concluído e lança automaticamente uma receita no Financeiro.</p>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-concluir')">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="confirmarConclusao()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SERVIÇO -->
 <div class="modal-bg" id="modal-servico">
   <div class="modal">
@@ -564,6 +592,7 @@ window.showPage = (page, el) => {
 
 // ══════════════ AGENDA ══════════════
 let _agData = new Date(); _agData.setHours(0,0,0,0);
+let _agsAtuais = [];
 function agDs(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function initAgenda(){ renderAgLbl(); carregarAgenda(); }
 window.agMudarDia = (dir) => { _agData.setDate(_agData.getDate()+dir); renderAgLbl(); carregarAgenda(); };
@@ -578,18 +607,18 @@ async function carregarAgenda(){
   try {
     const ds = agDs(_agData);
     const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
-    let ags = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
-    if (!ags.length) { list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>'; return; }
-    list.innerHTML = ags.map(a => `
+    _agsAtuais = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    if (!_agsAtuais.length) { list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>'; return; }
+    list.innerHTML = _agsAtuais.map(a => `
       <div class="agenda-item">
         <div class="ag-hora">${a.hora}</div>
         <div>
           <div class="ag-nome">${a.nome}</div>
-          <div class="ag-serv">${a.servicoNome||''} · ${a.tel||''}</div>
+          <div class="ag-serv">${a.servicoNome||''} · ${a.tel||''}${a.formaPagamento?' · '+a.formaPagamento:''}</div>
         </div>
         <div class="ag-status ${a.status}">${a.status}</div>
         <div class="ag-actions">
-          ${a.status!=='concluido'?`<button title="Concluir" onclick="agSetStatus('${a.id}','concluido')">✓</button>`:''}
+          ${a.status!=='concluido'?`<button title="Concluir" onclick="abrirModalConcluir('${a.id}')">✓</button>`:''}
           ${a.status!=='cancelado'?`<button title="Cancelar" onclick="agSetStatus('${a.id}','cancelado')">✕</button>`:''}
           <button title="Excluir" onclick="agExcluir('${a.id}')">🗑</button>
         </div>
@@ -606,6 +635,40 @@ window.agExcluir = async (id) => {
   if (!confirm('Excluir este agendamento?')) return;
   try { await deleteDoc(doc(db,'agendamentos',id)); toast('Agendamento excluído.'); carregarAgenda(); }
   catch(e){ toast('Erro ao excluir.','error'); }
+};
+
+// ── Concluir com pagamento (lança automático no financeiro) ──
+window.abrirModalConcluir = (id) => {
+  const a = _agsAtuais.find(x=>x.id===id);
+  if (!a) return;
+  const serv = _servicosAdmin.find(s=>s.id===a.servico);
+  document.getElementById('mcl-id').value = id;
+  document.getElementById('mcl-info').textContent = `${a.nome} — ${a.servicoNome||''}`;
+  document.getElementById('mcl-valor').value = serv ? serv.preco : '';
+  document.getElementById('mcl-pagamento').value = 'pix';
+  abrirModal('modal-concluir');
+};
+window.confirmarConclusao = async () => {
+  const id = document.getElementById('mcl-id').value;
+  const valor = parseFloat(document.getElementById('mcl-valor').value);
+  const pagamento = document.getElementById('mcl-pagamento').value;
+  if (isNaN(valor)) { toast('Informe o valor cobrado.','error'); return; }
+  const a = _agsAtuais.find(x=>x.id===id);
+  if (!a) { toast('Agendamento não encontrado.','error'); return; }
+  try {
+    await updateDoc(doc(db,'agendamentos',id), { status: 'concluido', formaPagamento: pagamento, valorCobrado: valor });
+    await addDoc(collection(db,'financeiro'), {
+      tipo: 'receita',
+      data: a.data,
+      valor,
+      categoria: a.servicoNome || 'Serviço',
+      descricao: `${a.nome} — ${pagamento}`,
+      criadoEm: new Date().toISOString()
+    });
+    toast('Corte concluído e lançado no financeiro.');
+    fecharModal('modal-concluir');
+    carregarAgenda();
+  } catch(e) { toast('Erro ao concluir.','error'); }
 };
 
 // ══════════════ SERVIÇOS ══════════════
