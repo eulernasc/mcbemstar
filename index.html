@@ -372,14 +372,18 @@ async function carregarSlots(ds, d, mes) {
   grid.innerHTML = '<span class="slots-empty">Carregando...</span>';
   wrap.style.display = '';
 
-  // Buscar agendamentos ocupados nesse dia
-  const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds), where('status','!=','cancelado')));
-  const ocupados = new Set(snap.docs.map(d => d.data().hora));
+  try {
+    // Buscar agendamentos do dia (filtro de status feito no navegador, evita índice composto)
+    const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
+    const ocupados = new Set(snap.docs.map(d => d.data()).filter(a => a.status !== 'cancelado').map(a => a.hora));
 
-  // Gerar slots
-  const slots = gerarSlots();
-  if (!slots.length) { grid.innerHTML='<span class="slots-empty">Sem horários disponíveis.</span>'; return; }
-  grid.innerHTML = slots.map(h => `<div class="slot${ocupados.has(h)?' occupied':''}" onclick="selecionarHora(this,'${h}')">${h}</div>`).join('');
+    // Gerar slots
+    const slots = gerarSlots();
+    if (!slots.length) { grid.innerHTML='<span class="slots-empty">Sem horários disponíveis.</span>'; return; }
+    grid.innerHTML = slots.map(h => `<div class="slot${ocupados.has(h)?' occupied':''}" onclick="selecionarHora(this,'${h}')">${h}</div>`).join('');
+  } catch(e) {
+    grid.innerHTML = '<span class="slots-empty">Erro ao carregar horários. Tente novamente.</span>';
+  }
 }
 
 function gerarSlots() {
