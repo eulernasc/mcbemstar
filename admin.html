@@ -164,7 +164,10 @@ tr:last-child td{border-bottom:none;}
   <div class="login-box">
     <div class="login-mark">MC</div>
     <div class="login-sub">Painel Administrativo</div>
-    <input type="password" id="login-senha" class="login-input" placeholder="Senha" autocomplete="off">
+    <div style="position:relative">
+      <input type="password" id="login-senha" class="login-input" placeholder="Senha" autocomplete="off" style="padding-right:32px">
+      <span id="login-toggle-eye" onclick="toggleSenhaVisivel()" style="position:absolute;right:2px;top:12px;cursor:pointer;font-size:15px;color:var(--gray);user-select:none">👁</span>
+    </div>
     <button class="login-btn" onclick="fazerLogin()">Entrar</button>
     <div class="login-err" id="login-err"></div>
     <div class="login-hint" id="login-hint"></div>
@@ -486,15 +489,26 @@ window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle
 
 // ── LOGIN ──
 async function garantirAuthDoc() {
-  const ref = doc(db,'admin','auth');
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    const hash = await sha256(SENHA_PADRAO);
-    await setDoc(ref, { senhaHash: hash });
-    document.getElementById('login-hint').textContent = `Primeiro acesso: senha padrão é "${SENHA_PADRAO}". Troque depois em Configurações.`;
+  try {
+    const ref = doc(db,'admin','auth');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      const hash = await sha256(SENHA_PADRAO);
+      await setDoc(ref, { senhaHash: hash });
+      document.getElementById('login-hint').textContent = `Primeiro acesso: senha padrão é "${SENHA_PADRAO}". Troque depois pelo menu.`;
+    }
+  } catch(e) {
+    document.getElementById('login-hint').textContent = 'Não foi possível conectar ao Firestore. Verifique as regras de segurança do projeto.';
   }
 }
 garantirAuthDoc();
+
+window.toggleSenhaVisivel = () => {
+  const inp = document.getElementById('login-senha');
+  const eye = document.getElementById('login-toggle-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+};
 
 window.fazerLogin = async () => {
   const senha = document.getElementById('login-senha').value;
@@ -512,7 +526,11 @@ window.fazerLogin = async () => {
       errEl.textContent = 'Senha incorreta.';
     }
   } catch(e) {
-    errEl.textContent = 'Erro ao verificar senha. Tente novamente.';
+    if (String(e.code||e.message||'').includes('permission')) {
+      errEl.textContent = 'Sem permissão no Firestore (verifique as regras de segurança).';
+    } else {
+      errEl.textContent = 'Erro ao verificar senha. Tente novamente.';
+    }
   }
 };
 document.getElementById('login-senha').addEventListener('keydown', e => { if(e.key==='Enter') window.fazerLogin(); });
