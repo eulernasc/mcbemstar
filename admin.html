@@ -192,6 +192,7 @@ tr:last-child td{border-bottom:none;}
       <div class="sb-item" data-page="relatorio" onclick="showPage('relatorio',this)"><span class="ic">📄</span>Relatório</div>
     </nav>
     <div class="sb-foot">
+      <div class="sb-logout" style="margin-bottom:10px" onclick="abrirModalSenha()">Trocar senha</div>
       <div class="sb-logout" onclick="logout()">Sair ↦</div>
     </div>
   </aside>
@@ -422,6 +423,29 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<!-- MODAL SENHA -->
+<div class="modal-bg" id="modal-senha">
+  <div class="modal">
+    <h3 class="modal-title">Trocar Senha</h3>
+    <div class="form-group">
+      <label class="form-lbl">Senha atual</label>
+      <input type="password" class="form-input" id="sn-atual" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Nova senha</label>
+      <input type="password" class="form-input" id="sn-nova" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Confirmar nova senha</label>
+      <input type="password" class="form-input" id="sn-confirma" autocomplete="off">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-senha')">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="trocarSenha()">Salvar Nova Senha</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -494,6 +518,30 @@ window.fazerLogin = async () => {
 document.getElementById('login-senha').addEventListener('keydown', e => { if(e.key==='Enter') window.fazerLogin(); });
 
 window.logout = () => { sessionStorage.removeItem('mc_admin_logado'); location.reload(); };
+
+window.abrirModalSenha = () => {
+  document.getElementById('sn-atual').value = '';
+  document.getElementById('sn-nova').value = '';
+  document.getElementById('sn-confirma').value = '';
+  abrirModal('modal-senha');
+};
+window.trocarSenha = async () => {
+  const atual = document.getElementById('sn-atual').value;
+  const nova = document.getElementById('sn-nova').value;
+  const confirma = document.getElementById('sn-confirma').value;
+  if (!atual || !nova || !confirma) { toast('Preencha todos os campos.','error'); return; }
+  if (nova.length < 4) { toast('A nova senha precisa ter pelo menos 4 caracteres.','error'); return; }
+  if (nova !== confirma) { toast('A confirmação não confere com a nova senha.','error'); return; }
+  try {
+    const ref = doc(db,'admin','auth');
+    const snap = await getDoc(ref);
+    const hashAtual = await sha256(atual);
+    if (!snap.exists() || snap.data().senhaHash !== hashAtual) { toast('Senha atual incorreta.','error'); return; }
+    const hashNova = await sha256(nova);
+    await setDoc(ref, { senhaHash: hashNova });
+    toast('Senha alterada com sucesso.'); fecharModal('modal-senha');
+  } catch(e) { toast('Erro ao trocar senha.','error'); }
+};
 
 function entrarApp() {
   document.getElementById('login-screen').style.display = 'none';
