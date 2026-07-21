@@ -304,12 +304,10 @@ th{background:#f8f6f1;}
           </div>
         </div>
         <div class="form-group">
-          <label class="form-lbl">Grade dos horários disponíveis</label>
-          <select class="form-select" id="hor-intervalo">
-            <option value="5">A cada 5 minutos</option>
-            <option value="10">A cada 10 minutos</option>
-            <option value="15">A cada 15 minutos</option>
-          </select>
+          <label class="form-lbl">Cálculo dos horários</label>
+          <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.035);color:var(--gray2);line-height:1.6">
+            Os horários são montados automaticamente conforme a duração do serviço. Um serviço de 60 minutos gera horários de hora em hora; um serviço de 45 minutos gera 07:00, 07:45, 08:30 e assim por diante. Após um atendimento ocupado, a próxima opção começa exatamente quando ele termina.
+          </div>
         </div>
       </div>
       <button class="btn btn-gold" onclick="salvarHorarios()">Salvar Configuração</button>
@@ -822,11 +820,10 @@ async function initHorarios(){
     </label>`).join('');
   try {
     const snap = await getDoc(doc(db,'config','horarios'));
-    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00', intervalo:5 };
+    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00' };
     (h.diasAtivos||[]).forEach(i => { const c=document.getElementById('hd-'+i); if(c) c.checked=true; });
     document.getElementById('hor-inicio').value = h.inicio||'07:00';
     document.getElementById('hor-fim').value = h.fim||'19:00';
-    document.getElementById('hor-intervalo').value = String(Number(h.intervalo)>15?5:(h.intervalo||5));
   } catch(e) { toast('Erro ao carregar horários.','error'); }
 }
 window.salvarHorarios = async () => {
@@ -835,8 +832,7 @@ window.salvarHorarios = async () => {
   const data = {
     diasAtivos,
     inicio: document.getElementById('hor-inicio').value,
-    fim: document.getElementById('hor-fim').value,
-    intervalo: parseInt(document.getElementById('hor-intervalo').value)
+    fim: document.getElementById('hor-fim').value
   };
   try { await setDoc(doc(db,'config','horarios'), data); toast('Configuração salva.'); }
   catch(e){ toast('Erro ao salvar.','error'); }

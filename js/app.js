@@ -43,7 +43,7 @@ const defaultServices = [
 const state = {
   services: [],
   filteredServices: [],
-  schedule: { diasAtivos: [1,2,3,4,5,6], inicio: "07:00", fim: "19:00", intervalo: 5 },
+  schedule: { diasAtivos: [1,2,3,4,5,6], inicio: "07:00", fim: "19:00" },
   selectedService: null,
   selectedDate: null,
   selectedTime: null,
@@ -94,8 +94,7 @@ async function loadSchedule() {
       state.schedule = {
         diasAtivos: Array.isArray(saved.diasAtivos) ? saved.diasAtivos : [1,2,3,4,5,6],
         inicio: saved.inicio || "07:00",
-        fim: saved.fim || "19:00",
-        intervalo: Number(saved.intervalo) > 15 ? 5 : Number(saved.intervalo || 5)
+        fim: saved.fim || "19:00"
       };
     }
   } catch (error) {
@@ -247,19 +246,45 @@ function isOverlapping(start, end, bookings = state.bookingsForDate) {
 
 function generateAvailableSlots() {
   if (!state.selectedDate || !state.selectedService) return [];
+
   const opening = timeToMinutes(state.schedule.inicio);
   const closing = timeToMinutes(state.schedule.fim);
-  const duration = Number(state.selectedService.duracao || 30);
-  const step = Number(state.schedule.intervalo || 5);
-  const slots = [];
+  const duration = Math.max(5, Number(state.selectedService.duracao || 60));
   const now = new Date();
   const todayKey = dateKey(now);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const slots = [];
 
-  for (let start = opening; start + duration <= closing; start += step) {
-    const end = start + duration;
-    if (state.selectedDate === todayKey && start <= now.getHours() * 60 + now.getMinutes()) continue;
-    if (!isOverlapping(start, end)) slots.push(minutesToTime(start));
-  }
+  // Organiza e une os períodos já ocupados para descobrir os intervalos realmente livres.
+  const occupied = state.bookingsForDate
+    .map(booking => {
+      const start = timeToMinutes(booking.hora);
+      const end = start + bookingDuration(booking);
+      return { start: Math.max(opening, start), end: Math.min(closing, end) };
+    })
+    .filter(period => Number.isFinite(period.start) && Number.isFinite(period.end) && period.end > opening && period.start < closing)
+    .sort((a, b) => a.start - b.start)
+    .reduce((merged, period) => {
+      const last = merged[merged.length - 1];
+      if (!last || period.start > last.end) merged.push({ ...period });
+      else last.end = Math.max(last.end, period.end);
+      return merged;
+    }, []);
+
+  const addFreeWindow = (windowStart, windowEnd) => {
+    for (let start = windowStart; start + duration <= windowEnd; start += duration) {
+      if (state.selectedDate === todayKey && start <= currentMinutes) continue;
+      slots.push(minutesToTime(start));
+    }
+  };
+
+  let freeStart = opening;
+  occupied.forEach(period => {
+    if (period.start > freeStart) addFreeWindow(freeStart, period.start);
+    freeStart = Math.max(freeStart, period.end);
+  });
+  if (freeStart < closing) addFreeWindow(freeStart, closing);
+
   return slots;
 }
 

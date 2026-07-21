@@ -36,3 +36,13 @@ O número usado para finalizar a confirmação no WhatsApp está em `js/app.js`,
 ## Regras do Firestore
 
 O arquivo `firestore.rules.example` contém uma sugestão de regras que mantém nome e telefone dos clientes protegidos. Copie essas regras para o Firebase Console antes de colocar o sistema em produção.
+
+## Lógica dos horários
+
+Os horários públicos são calculados automaticamente pela duração do serviço e pelos agendamentos já ocupados. Exemplos:
+
+- serviço de 60 minutos: 07:00, 08:00, 09:00...
+- serviço de 45 minutos: 07:00, 07:45, 08:30...
+- se um atendimento termina às 07:40, a próxima janela livre começa às 07:40.
+
+O painel permanece separado em `admin.html` e exige autenticação.
