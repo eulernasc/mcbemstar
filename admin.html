@@ -71,6 +71,7 @@ input,select,textarea{font-family:inherit;}
 .btn-sm{padding:7px 14px;font-size:10px;}
 .btn-danger{background:transparent;border:1px solid rgba(239,68,68,.35);color:var(--red);}
 .btn-danger:hover{background:var(--red2);}
+.btn:disabled{opacity:.55;cursor:not-allowed;pointer-events:none;}
 
 .card{background:var(--black2);border:1px solid var(--border);padding:28px;margin-bottom:22px;}
 .card-title{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
@@ -820,7 +821,7 @@ button{-webkit-tap-highlight-color:transparent;}
 
       <div class="card" style="padding:0;overflow-x:auto">
         <table>
-          <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Pagamento</th><th>Valor</th><th></th></tr></thead>
           <tbody id="fin-tbody"></tbody>
         </table>
       </div>
@@ -904,7 +905,7 @@ button{-webkit-tap-highlight-color:transparent;}
     <p style="font-size:10.5px;color:var(--gray2);margin-top:-6px">Isso marca como concluído e lança automaticamente uma receita no Financeiro.</p>
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-concluir')">Cancelar</button>
-      <button class="btn btn-gold btn-sm" onclick="confirmarConclusao()">Confirmar</button>
+      <button class="btn btn-gold btn-sm" id="mcl-confirmar-btn" onclick="confirmarConclusao()">Confirmar conclusão</button>
     </div>
   </div>
 </div>
@@ -1020,6 +1021,17 @@ button{-webkit-tap-highlight-color:transparent;}
     <div class="form-group">
       <label class="form-lbl">Categoria</label>
       <input class="form-input" id="mf-categoria" placeholder="Ex: Produtos, Aluguel, Serviço avulso...">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Forma de pagamento</label>
+      <select class="form-select" id="mf-pagamento">
+        <option value="pix">Pix</option>
+        <option value="dinheiro">Dinheiro</option>
+        <option value="cartao_debito">Cartão de débito</option>
+        <option value="cartao_credito">Cartão de crédito</option>
+        <option value="outro">Outro</option>
+        <option value="nao_informado">Não informado</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-lbl">Descrição (opcional)</label>
@@ -1392,7 +1404,7 @@ function agRenderResumo(){
   const ativos=_agsAtuais.filter(a=>agStatusNormalizado(a.status)!=='cancelado');
   const confirmados=ativos.filter(a=>agStatusNormalizado(a.status)==='confirmado').length;
   const aguardando=ativos.filter(a=>agStatusNormalizado(a.status)==='aguardando').length;
-  const receita=ativos.filter(a=>['confirmado','concluido'].includes(agStatusNormalizado(a.status))).reduce((s,a)=>s+Number(a.preco||0),0);
+  const receita=ativos.filter(a=>['confirmado','concluido'].includes(agStatusNormalizado(a.status))).reduce((s,a)=>s+Number(a.valorPago ?? a.preco ?? 0),0);
   document.getElementById('agenda-summary').innerHTML=`
     <div class="calendar-summary-card"><span>Agendamentos</span><strong>${ativos.length}</strong></div>
     <div class="calendar-summary-card"><span>Confirmados</span><strong>${confirmados}</strong></div>
@@ -1423,6 +1435,8 @@ window.abrirDetalhesAgendamento=(id)=>{
     ['Cliente',a.nome||'-'],['WhatsApp',a.tel||'-'],['Serviço',a.servicoNome||'-'],['Profissional',a.profissionalNome||'Maykon Castro'],
     ['Data',a.data?fmtData(a.data):'-'],['Horário',a.hora||'-'],['Duração',`${Number(a.duracao||30)} minutos`],['Status',agStatusLabel(a.status)]
   ];
+  if (a.formaPagamento) itens.push(['Pagamento', formatarPagamento(a.formaPagamento)]);
+  if (a.valorPago != null) itens.push(['Valor recebido', fmtMoeda(Number(a.valorPago))]);
   document.getElementById('event-detail-grid').innerHTML=itens.map(([l,v])=>`<div class="event-detail-item"><span>${l}</span><strong>${agEscape(v)}</strong></div>`).join('');
   const wpp=a.whatsappConfirmacaoStatus||'pendente_envio';
   const resposta=a.whatsappRespostaStatus||'aguardando';
@@ -1447,6 +1461,95 @@ window.agExcluir=async(id)=>{
   if(!confirm('Excluir este agendamento?'))return;
   try{await deleteDoc(doc(db,'agendamentos',id));await deleteDoc(doc(db,'agenda_publica',id)).catch(()=>null);toast('Agendamento excluído.');await carregarAgenda();}
   catch(e){toast('Erro ao excluir.','error');}
+};
+
+// ══════════════ CONCLUSÃO E PAGAMENTO ══════════════
+window.abrirModalConcluir = async (id) => {
+  try {
+    let a = _agsAtuais.find(x => x.id === id) || _whatsappRegistros.find(x => x.id === id);
+    if (!a) {
+      const snap = await getDoc(doc(db,'agendamentos',id));
+      if (!snap.exists()) { toast('Agendamento não encontrado.','error'); return; }
+      a = { id:snap.id, ...snap.data() };
+    }
+    if (agStatusNormalizado(a.status) === 'cancelado') {
+      toast('Um agendamento cancelado não pode ser concluído.','error');
+      return;
+    }
+
+    document.getElementById('mcl-id').value = id;
+    document.getElementById('mcl-info').textContent = `${a.nome || 'Cliente'} · ${a.servicoNome || 'Serviço'} · ${a.data ? fmtData(a.data) : ''} às ${a.hora || ''}`;
+    document.getElementById('mcl-valor').value = Number(a.valorPago ?? a.preco ?? 0).toFixed(2);
+    document.getElementById('mcl-pagamento').value = a.formaPagamento || 'pix';
+    const btn = document.getElementById('mcl-confirmar-btn');
+    btn.disabled = false;
+    btn.textContent = agStatusNormalizado(a.status) === 'concluido' ? 'Atualizar pagamento' : 'Confirmar conclusão';
+    abrirModal('modal-concluir');
+  } catch (e) {
+    console.error(e);
+    toast('Não foi possível abrir a conclusão.','error');
+  }
+};
+
+window.confirmarConclusao = async () => {
+  const id = document.getElementById('mcl-id').value;
+  const valor = Number(document.getElementById('mcl-valor').value);
+  const formaPagamento = document.getElementById('mcl-pagamento').value;
+  const btn = document.getElementById('mcl-confirmar-btn');
+
+  if (!id) { toast('Agendamento não identificado.','error'); return; }
+  if (!Number.isFinite(valor) || valor <= 0) { toast('Informe um valor recebido válido.','error'); return; }
+  if (!formaPagamento) { toast('Escolha a forma de pagamento.','error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  try {
+    const agRef = doc(db,'agendamentos',id);
+    const agSnap = await getDoc(agRef);
+    if (!agSnap.exists()) throw new Error('Agendamento não encontrado.');
+    const a = { id:agSnap.id, ...agSnap.data() };
+    if (agStatusNormalizado(a.status) === 'cancelado') throw new Error('Agendamento cancelado.');
+
+    // ID fixo: clicar novamente atualiza o mesmo lançamento em vez de duplicar a receita.
+    const financeiroId = `agendamento_${id}`;
+    const agora = new Date().toISOString();
+    await setDoc(doc(db,'financeiro',financeiroId), {
+      tipo: 'receita',
+      data: a.data || agDs(new Date()),
+      valor,
+      categoria: 'Serviços',
+      descricao: `${a.servicoNome || 'Serviço'} — ${a.nome || 'Cliente'}`,
+      cliente: a.nome || '',
+      servico: a.servicoNome || '',
+      formaPagamento,
+      agendamentoId: id,
+      criadoEm: a.concluidoEm || agora,
+      atualizadoEm: agora
+    });
+
+    await updateDoc(agRef, {
+      status: 'concluido',
+      valorPago: valor,
+      formaPagamento,
+      concluidoEm: agora,
+      financeiroLancamentoId: financeiroId
+    });
+    await setDoc(doc(db,'agenda_publica',id), { status:'concluido' }, { merge:true });
+
+    const local = _agsAtuais.find(x => x.id === id);
+    if (local) Object.assign(local, { status:'concluido', valorPago:valor, formaPagamento, concluidoEm:agora, financeiroLancamentoId:financeiroId });
+
+    fecharModal('modal-concluir');
+    toast(`Atendimento concluído: ${formatarPagamento(formaPagamento)} · ${fmtMoeda(valor)}.`);
+    await Promise.allSettled([carregarAgenda(), carregarFinanceiro(), carregarDRE()]);
+  } catch (e) {
+    console.error(e);
+    toast(e?.message === 'Agendamento cancelado.' ? 'O agendamento está cancelado.' : 'Erro ao concluir e lançar o pagamento.','error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Confirmar conclusão';
+  }
 };
 
 // ══════════════ WHATSAPP ══════════════
@@ -1967,12 +2070,12 @@ function renderFinMesLbl(){ document.getElementById('fin-mes-lbl').textContent =
 
 async function carregarFinanceiro(){
   const tbody = document.getElementById('fin-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray2)">Carregando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray2)">Carregando...</td></tr>';
   try {
     const snap = await getDocsComRetry(collection(db,'financeiro'));
     const mk = mesKey(_finMes);
     _finLancamentos = snap.docs.map(d=>({id:d.id,...d.data()})).filter(f => (f.data||'').startsWith(mk)).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
-    if (!_finLancamentos.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray2)">Nenhum lançamento neste mês.</td></tr>'; }
+    if (!_finLancamentos.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray2)">Nenhum lançamento neste mês.</td></tr>'; }
     else {
       tbody.innerHTML = _finLancamentos.map(f => `
         <tr>
@@ -1980,6 +2083,7 @@ async function carregarFinanceiro(){
           <td><span class="badge ${f.tipo==='receita'?'on':'off'}" style="${f.tipo==='despesa'?'background:rgba(239,68,68,.14);color:var(--red)':''}">${f.tipo}</span></td>
           <td>${f.categoria||'-'}</td>
           <td>${f.descricao||'-'}</td>
+          <td>${f.formaPagamento ? formatarPagamento(f.formaPagamento) : '-'}</td>
           <td style="color:${f.tipo==='receita'?'var(--green)':'var(--red)'}">${f.tipo==='receita'?'+':'-'} ${fmtMoeda(f.valor)}</td>
           <td><div class="tbl-actions"><button title="Excluir" onclick="excluirFin('${f.id}')">🗑</button></div></td>
         </tr>`).join('');
@@ -1990,7 +2094,7 @@ async function carregarFinanceiro(){
     document.getElementById('fin-kpi-despesa').textContent = fmtMoeda(despesas);
     document.getElementById('fin-kpi-saldo').textContent = fmtMoeda(receitas-despesas);
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red)">Erro ao carregar financeiro.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--red)">Erro ao carregar financeiro.</td></tr>';
   }
 }
 window.abrirModalFin = () => {
@@ -1998,6 +2102,7 @@ window.abrirModalFin = () => {
   document.getElementById('mf-data').value = agDs(new Date());
   document.getElementById('mf-valor').value = '';
   document.getElementById('mf-categoria').value = '';
+  document.getElementById('mf-pagamento').value = 'pix';
   document.getElementById('mf-desc').value = '';
   abrirModal('modal-fin');
 };
@@ -2011,6 +2116,7 @@ window.salvarFin = async () => {
       tipo: document.getElementById('mf-tipo').value,
       data: dataStr, valor, categoria,
       descricao: document.getElementById('mf-desc').value.trim(),
+      formaPagamento: document.getElementById('mf-pagamento').value,
       criadoEm: new Date().toISOString()
     });
     toast('Lançamento salvo.'); fecharModal('modal-fin'); carregarFinanceiro();
@@ -2060,7 +2166,7 @@ function renderRelMesLbl(){ document.getElementById('rel-mes-lbl').textContent =
 function formatarPagamento(valor=''){
   const mapa = {
     pix:'Pix', dinheiro:'Dinheiro', cartao_debito:'Cartão de débito',
-    cartao_credito:'Cartão de crédito', outro:'Outro'
+    cartao_credito:'Cartão de crédito', outro:'Outro', nao_informado:'Não informado'
   };
   return mapa[valor] || valor || '-';
 }
