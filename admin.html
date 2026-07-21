@@ -7,6 +7,7 @@
 <link rel="icon" href="assets/logo-mc-mark.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --gold:#C9A84C;--gold2:#E2C97E;--gold3:#8a6e2f;
@@ -441,6 +442,57 @@ button{-webkit-tap-highlight-color:transparent;}
   .schedule-day-main{grid-column:auto;}
 }
 
+/* Legibilidade da configuração de horários */
+.schedule-day-row{
+  opacity:1!important;
+  background:#fffdf9;
+  border-color:rgba(179,138,47,.34);
+}
+.schedule-day-row.is-closed{
+  opacity:1!important;
+  background:#f5f2eb;
+  border-style:dashed;
+}
+.schedule-day-name strong{
+  color:#211f1a!important;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+.schedule-day-name span{
+  color:#756f65!important;
+  font-weight:800;
+}
+.schedule-day-row.is-closed .schedule-day-name strong{color:#716c63!important;}
+.schedule-day-row.is-closed .schedule-day-name span{color:#9a6a5e!important;}
+.schedule-time-field label{
+  color:#76561a!important;
+  font-weight:800;
+}
+.schedule-time-field input{
+  background:#ffffff!important;
+  color:#1d1d1b!important;
+  font-weight:700;
+  border-color:rgba(179,138,47,.38)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  opacity:1!important;
+  -webkit-text-fill-color:#1d1d1b;
+}
+.schedule-time-field input:focus{
+  border-color:#b38a2f!important;
+  box-shadow:0 0 0 4px rgba(179,138,47,.10);
+  outline:none;
+}
+.schedule-time-field input:disabled{
+  background:#e9e5dc!important;
+  color:#706b63!important;
+  -webkit-text-fill-color:#706b63;
+  opacity:1!important;
+}
+.schedule-time-field input::-webkit-calendar-picker-indicator{opacity:.82;cursor:pointer;}
+
+
+.report-note{max-width:760px;margin:0 0 18px;padding:14px 16px;border:1px solid rgba(179,138,47,.25);border-radius:13px;background:#fbf8f0;color:#6f685c;font-size:11px;line-height:1.65;}
+.report-note strong{color:#75571f;}
 
 .admin-update-note{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:8px 12px;margin:-8px 0 20px;border-radius:999px;background:#f6eedb;border:1px solid rgba(179,138,47,.22);color:#75602d;font-size:10px;}
 @media(max-width:720px){.admin-update-note{width:100%;border-radius:12px;line-height:1.45;align-items:flex-start;}}
@@ -664,7 +716,7 @@ button{-webkit-tap-highlight-color:transparent;}
     <div class="page" id="page-relatorio">
       <div class="page-tag">Exportar</div>
       <h1 class="page-title">Relatório <em>PDF</em></h1>
-      <p class="page-sub">Gere um relatório do mês para enviar à contadora.</p>
+      <p class="page-sub">Gere um documento completo, organizado e pronto para enviar à contadora.</p>
 
       <div class="card">
         <div class="card-title">Selecione o mês</div>
@@ -674,7 +726,13 @@ button{-webkit-tap-highlight-color:transparent;}
           <button onclick="relMudarMes(1)">›</button>
         </div>
       </div>
-      <button class="btn btn-gold" onclick="gerarPDF()">📄 Gerar Relatório PDF</button>
+      <div class="report-note">
+        <strong>O PDF incluirá:</strong> receitas, despesas, resultado líquido, ticket médio, resumo por categoria, lançamentos detalhados, forma de pagamento e paginação automática.
+      </div>
+      <button class="btn btn-gold" onclick="gerarPDF()">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M9 13h7M9 17h7"/></svg>
+        Gerar relatório profissional
+      </button>
     </div>
 
   </main>
@@ -1093,7 +1151,11 @@ window.confirmarConclusao = async () => {
       data: a.data,
       valor,
       categoria: a.servicoNome || 'Serviço',
-      descricao: `${a.nome} — ${pagamento}`,
+      descricao: `${a.nome} - ${pagamento}`,
+      cliente: a.nome || '',
+      servico: a.servicoNome || '',
+      formaPagamento: pagamento,
+      agendamentoId: id,
       criadoEm: new Date().toISOString()
     });
     toast('Atendimento concluído e lançado no financeiro.');
@@ -1486,45 +1548,220 @@ function initRelatorio(){ renderRelMesLbl(); }
 window.relMudarMes = (dir) => { _relMes.setMonth(_relMes.getMonth()+dir); renderRelMesLbl(); };
 function renderRelMesLbl(){ document.getElementById('rel-mes-lbl').textContent = `${MESES[_relMes.getMonth()]} ${_relMes.getFullYear()}`; }
 
+function formatarPagamento(valor=''){
+  const mapa = {
+    pix:'Pix', dinheiro:'Dinheiro', cartao_debito:'Cartão de débito',
+    cartao_credito:'Cartão de crédito', outro:'Outro'
+  };
+  return mapa[valor] || valor || '-';
+}
+function formatarTipoRelatorio(tipo){ return tipo === 'receita' ? 'Receita' : 'Despesa'; }
+function formatarMoedaPDF(valor){
+  return Number(valor||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function extrairDetalhesFinanceiros(f){
+  let cliente = (f.cliente || '').trim();
+  let pagamento = (f.formaPagamento || '').trim();
+  let descricao = (f.descricao || '').trim();
+
+  // Compatibilidade com lançamentos antigos: "Cliente - forma_pagamento" ou "Cliente — forma_pagamento".
+  if ((!cliente || !pagamento) && descricao) {
+    const partes = descricao.split(/\s+[—-]\s+/).map(x=>x.trim()).filter(Boolean);
+    if (!cliente && partes.length >= 2) cliente = partes[0];
+    if (!pagamento && partes.length >= 2) pagamento = partes[partes.length-1];
+  }
+
+  const detalhes = cliente
+    ? `Cliente: ${cliente}${f.servico ? ` | Serviço: ${f.servico}` : ''}`
+    : (descricao || '-');
+
+  return { detalhes, pagamento: formatarPagamento(pagamento) };
+}
+async function imagemParaDataURL(url){
+  const resposta = await fetch(url, {cache:'force-cache'});
+  if (!resposta.ok) throw new Error('Não foi possível carregar a logo.');
+  const blob = await resposta.blob();
+  return await new Promise((resolve,reject)=>{
+    const leitor = new FileReader();
+    leitor.onload = ()=>resolve(leitor.result);
+    leitor.onerror = reject;
+    leitor.readAsDataURL(blob);
+  });
+}
+function desenharCartaoResumo(pdf, x, y, w, titulo, valor, corValor){
+  pdf.setFillColor(249,247,242);
+  pdf.setDrawColor(226,213,183);
+  pdf.roundedRect(x,y,w,24,3,3,'FD');
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(117,103,72);
+  pdf.text(titulo.toUpperCase(),x+5,y+7);
+  pdf.setFontSize(13);
+  pdf.setTextColor(...corValor);
+  pdf.text(valor,x+5,y+17);
+}
+function adicionarRodapeRelatorio(pdf){
+  const paginas = pdf.getNumberOfPages();
+  for(let i=1;i<=paginas;i++){
+    pdf.setPage(i);
+    const h = pdf.internal.pageSize.getHeight();
+    const w = pdf.internal.pageSize.getWidth();
+    pdf.setDrawColor(225,217,199);
+    pdf.line(14,h-13,w-14,h-13);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(125,120,111);
+    pdf.text('MC Bem Estar Studio - Relatório financeiro',14,h-8);
+    pdf.text(`Página ${i} de ${paginas}`,w-14,h-8,{align:'right'});
+  }
+}
+
 window.gerarPDF = async () => {
   try {
+    if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('Biblioteca de PDF indisponível.');
     const snap = await getDocs(collection(db,'financeiro'));
     const mk = mesKey(_relMes);
-    const lancs = snap.docs.map(d=>d.data()).filter(f => (f.data||'').startsWith(mk)).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
-    const receita = lancs.filter(f=>f.tipo==='receita').reduce((s,f)=>s+Number(f.valor||0),0);
-    const despesa = lancs.filter(f=>f.tipo==='despesa').reduce((s,f)=>s+Number(f.valor||0),0);
+    const lancs = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(f => (f.data||'').startsWith(mk))
+      .sort((a,b)=>(a.data||'').localeCompare(b.data||'') || (a.criadoEm||'').localeCompare(b.criadoEm||''));
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-    let y = 20;
-    pdf.setFontSize(18); pdf.text('MC Bem Estar Studio', 14, y); y+=8;
-    pdf.setFontSize(11); pdf.setTextColor(120); pdf.text(`Relatório Financeiro — ${MESES[_relMes.getMonth()]} de ${_relMes.getFullYear()}`, 14, y); y+=14;
-    pdf.setTextColor(0);
-    pdf.setFontSize(12); pdf.text('Resumo', 14, y); y+=8;
-    pdf.setFontSize(10);
-    pdf.text(`Receitas: R$ ${receita.toFixed(2).replace('.',',')}`, 14, y); y+=6;
-    pdf.text(`Despesas: R$ ${despesa.toFixed(2).replace('.',',')}`, 14, y); y+=6;
-    pdf.text(`Resultado líquido: R$ ${(receita-despesa).toFixed(2).replace('.',',')}`, 14, y); y+=14;
+    const receitas = lancs.filter(f=>f.tipo==='receita');
+    const despesas = lancs.filter(f=>f.tipo==='despesa');
+    const receita = receitas.reduce((s,f)=>s+Number(f.valor||0),0);
+    const despesa = despesas.reduce((s,f)=>s+Number(f.valor||0),0);
+    const resultado = receita-despesa;
+    const ticketMedio = receitas.length ? receita/receitas.length : 0;
 
-    pdf.setFontSize(12); pdf.text('Lançamentos', 14, y); y+=8;
-    pdf.setFontSize(9);
-    pdf.text('Data', 14, y); pdf.text('Tipo', 44, y); pdf.text('Categoria', 74, y); pdf.text('Descrição', 114, y); pdf.text('Valor', 175, y);
-    y+=2; pdf.line(14,y,196,y); y+=6;
-    if (!lancs.length) { pdf.text('Nenhum lançamento neste mês.', 14, y); y+=6; }
-    lancs.forEach(f => {
-      if (y > 275) { pdf.addPage(); y = 20; }
-      pdf.text(fmtData(f.data), 14, y);
-      pdf.text(f.tipo, 44, y);
-      pdf.text((f.categoria||'-').substring(0,18), 74, y);
-      pdf.text((f.descricao||'-').substring(0,26), 114, y);
-      pdf.text((f.tipo==='receita'?'+ ':'- ')+'R$ '+Number(f.valor||0).toFixed(2).replace('.',','), 175, y);
-      y+=6;
+    const categorias = {};
+    lancs.forEach(f=>{
+      const chave = `${f.tipo||'outro'}|${f.categoria||'Outros'}`;
+      if(!categorias[chave]) categorias[chave] = {tipo:f.tipo||'outro',categoria:f.categoria||'Outros',quantidade:0,total:0};
+      categorias[chave].quantidade++;
+      categorias[chave].total += Number(f.valor||0);
+    });
+    const resumoCategorias = Object.values(categorias).sort((a,b)=>{
+      if(a.tipo!==b.tipo) return a.tipo==='receita' ? -1 : 1;
+      return b.total-a.total;
     });
 
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW = pdf.internal.pageSize.getWidth();
+    const gold = [179,138,47];
+    const dark = [29,29,27];
+    const green = [40,124,80];
+    const red = [177,61,61];
+
+    // Cabeçalho institucional
+    pdf.setFillColor(250,249,246);
+    pdf.rect(0,0,pageW,48,'F');
+    pdf.setFillColor(...gold);
+    pdf.rect(0,0,4,48,'F');
+    try {
+      const logo = await imagemParaDataURL('assets/logo-mc.png');
+      pdf.addImage(logo,'PNG',12,8,40,31,'MCLOGO','FAST');
+    } catch(e) {
+      pdf.setFont('helvetica','bold');
+      pdf.setFontSize(18);
+      pdf.setTextColor(...gold);
+      pdf.text('MC',14,25);
+    }
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(17);
+    pdf.setTextColor(...dark);
+    pdf.text('Relatório Financeiro',60,18);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(101,97,89);
+    pdf.text(`${MESES[_relMes.getMonth()]} de ${_relMes.getFullYear()}`,60,25);
+    pdf.setFontSize(8);
+    pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`,60,32);
+    pdf.setDrawColor(...gold);
+    pdf.line(60,37,pageW-14,37);
+
+    // Indicadores
+    const margem = 14;
+    const gap = 4;
+    const cardW = (pageW - (margem*2) - (gap*3))/4;
+    desenharCartaoResumo(pdf,margem,55,cardW,'Receitas',formatarMoedaPDF(receita),green);
+    desenharCartaoResumo(pdf,margem+(cardW+gap),55,cardW,'Despesas',formatarMoedaPDF(despesa),red);
+    desenharCartaoResumo(pdf,margem+(cardW+gap)*2,55,cardW,'Resultado',formatarMoedaPDF(resultado),resultado>=0?green:red);
+    desenharCartaoResumo(pdf,margem+(cardW+gap)*3,55,cardW,'Ticket médio',formatarMoedaPDF(ticketMedio),gold);
+
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(110,106,98);
+    pdf.text(`${receitas.length} receita(s) e ${despesas.length} despesa(s) registradas no período.`,margem,84);
+
+    // Resumo por categoria
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(12);
+    pdf.setTextColor(...dark);
+    pdf.text('Resumo por categoria',margem,96);
+
+    pdf.autoTable({
+      startY:100,
+      margin:{left:margem,right:margem},
+      head:[['Tipo','Categoria','Qtd.','Total']],
+      body:resumoCategorias.length
+        ? resumoCategorias.map(x=>[formatarTipoRelatorio(x.tipo),x.categoria,String(x.quantidade),formatarMoedaPDF(x.total)])
+        : [['-','Nenhum lançamento no período','0',formatarMoedaPDF(0)]],
+      theme:'grid',
+      styles:{font:'helvetica',fontSize:8.3,cellPadding:3,textColor:dark,lineColor:[226,218,200],lineWidth:.2},
+      headStyles:{fillColor:gold,textColor:[255,255,255],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[250,248,243]},
+      columnStyles:{0:{cellWidth:26},1:{cellWidth:'auto'},2:{cellWidth:18,halign:'center'},3:{cellWidth:32,halign:'right',fontStyle:'bold'}}
+    });
+
+    let yDetalhes = pdf.lastAutoTable.finalY + 11;
+    if(yDetalhes > 245){ pdf.addPage(); yDetalhes=20; }
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(12);
+    pdf.setTextColor(...dark);
+    pdf.text('Lançamentos detalhados',margem,yDetalhes);
+
+    const linhas = lancs.map(f=>{
+      const ext = extrairDetalhesFinanceiros(f);
+      return [
+        fmtData(f.data),
+        formatarTipoRelatorio(f.tipo),
+        f.categoria||'-',
+        ext.detalhes,
+        ext.pagamento,
+        `${f.tipo==='receita'?'+':'-'} ${formatarMoedaPDF(f.valor)}`
+      ];
+    });
+
+    pdf.autoTable({
+      startY:yDetalhes+4,
+      margin:{left:margem,right:margem,top:18,bottom:20},
+      head:[['Data','Tipo','Categoria','Detalhes','Pagamento','Valor']],
+      body:linhas.length ? linhas : [['-','-','-','Nenhum lançamento neste mês.','-',formatarMoedaPDF(0)]],
+      theme:'grid',
+      styles:{font:'helvetica',fontSize:7.4,cellPadding:2.7,valign:'middle',overflow:'linebreak',textColor:dark,lineColor:[229,222,207],lineWidth:.18},
+      headStyles:{fillColor:[43,40,34],textColor:[255,255,255],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[250,248,243]},
+      columnStyles:{
+        0:{cellWidth:21},1:{cellWidth:19},2:{cellWidth:34},3:{cellWidth:57},4:{cellWidth:27},5:{cellWidth:28,halign:'right',fontStyle:'bold'}
+      },
+      didParseCell(data){
+        if(data.section==='body' && data.column.index===1){
+          data.cell.styles.textColor = data.cell.raw==='Receita' ? green : red;
+          data.cell.styles.fontStyle = 'bold';
+        }
+        if(data.section==='body' && data.column.index===5){
+          const txt = String(data.cell.raw||'');
+          data.cell.styles.textColor = txt.trim().startsWith('+') ? green : red;
+        }
+      }
+    });
+
+    adicionarRodapeRelatorio(pdf);
     pdf.save(`MC-BemEstar-Relatorio-${MESES[_relMes.getMonth()]}-${_relMes.getFullYear()}.pdf`);
-    toast('PDF gerado com sucesso.');
+    toast('Relatório profissional gerado com sucesso.');
   } catch(e) {
-    toast('Erro ao gerar PDF.','error');
+    console.error(e);
+    toast('Erro ao gerar PDF. Atualize a página e tente novamente.','error');
   }
 };
 </script>
