@@ -25,14 +25,16 @@ O projeto começa com **Maykon Castro**, usando `assets/maykon-castro.webp`.
 
 ## Horários
 
-Os inícios são oferecidos de 30 em 30 minutos:
+Os horários iniciais já estão configurados assim:
 
-- 07:00
-- 07:30
-- 08:00
-- 08:30
+- Segunda, terça e quarta: **07:00 às 19:00**
+- Quinta e sexta: **07:00 às 22:00**
+- Sábado: **07:00 às 14:00**
+- Domingo: fechado
 
-A duração real do serviço continua sendo respeitada. Exemplo: um atendimento de 45 minutos às 07:00 bloqueia o início das 07:30 e libera novamente às 08:00.
+No painel administrativo, cada dia possui seu próprio botão de ativação, horário de abertura e horário de fechamento. Tudo pode ser alterado posteriormente.
+
+Os inícios são oferecidos de 30 em 30 minutos: 07:00, 07:30, 08:00, 08:30 e assim por diante. A duração real do serviço continua sendo respeitada. Exemplo: um atendimento de 45 minutos às 07:00 bloqueia o início das 07:30 e libera novamente às 08:00.
 
 ## Painel administrativo
 

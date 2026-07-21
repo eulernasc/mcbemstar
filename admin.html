@@ -413,6 +413,35 @@ button{-webkit-tap-highlight-color:transparent;}
 }
 
 
+/* Horários individuais por dia */
+.schedule-intro{margin:-2px 0 18px;color:var(--gray);font-size:12px;line-height:1.65;}
+.schedule-week{display:grid;gap:10px;}
+.schedule-day-row{display:grid;grid-template-columns:minmax(190px,1.15fr) minmax(150px,1fr) minmax(150px,1fr);align-items:end;gap:14px;padding:15px 16px;border:1px solid var(--border);border-radius:15px;background:#fcfbf8;transition:.18s;}
+.schedule-day-row.is-closed{opacity:.58;background:#f4f2ed;}
+.schedule-day-main{min-height:54px;display:flex;align-items:center;gap:12px;}
+.schedule-active{display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;}
+.schedule-active input{position:absolute;opacity:0;pointer-events:none;}
+.schedule-switch{width:43px;height:24px;border-radius:999px;background:#d8d4ca;border:1px solid #cbc5b8;position:relative;flex:none;transition:.2s;}
+.schedule-switch::after{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.16);transition:.2s;}
+.schedule-active input:checked + .schedule-switch{background:linear-gradient(135deg,#c49b42,#936c21);border-color:#a77d28;}
+.schedule-active input:checked + .schedule-switch::after{transform:translateX(19px);}
+.schedule-day-name strong{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1;color:var(--black);}
+.schedule-day-name span{display:block;margin-top:5px;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--gray2);}
+.schedule-time-field label{display:block;margin:0 0 7px;font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--gold3);font-weight:800;}
+.schedule-time-field input{width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:0 13px;background:#fff;color:var(--black);font:inherit;}
+.schedule-time-field input:disabled{background:#eeeae2;color:#9b978f;cursor:not-allowed;}
+@media(max-width:720px){
+  .schedule-day-row{grid-template-columns:1fr 1fr;gap:11px;padding:14px;}
+  .schedule-day-main{grid-column:1/-1;min-height:auto;padding-bottom:3px;}
+  .schedule-day-name strong{font-size:20px;}
+  .schedule-time-field input{height:44px;}
+}
+@media(max-width:390px){
+  .schedule-day-row{grid-template-columns:1fr;}
+  .schedule-day-main{grid-column:auto;}
+}
+
+
 .admin-update-note{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:8px 12px;margin:-8px 0 20px;border-radius:999px;background:#f6eedb;border:1px solid rgba(179,138,47,.22);color:#75602d;font-size:10px;}
 @media(max-width:720px){.admin-update-note{width:100%;border-radius:12px;line-height:1.45;align-items:flex-start;}}
 </style>
@@ -486,7 +515,7 @@ button{-webkit-tap-highlight-color:transparent;}
       <div class="page-tag">Agenda do studio</div>
       <h1 class="page-title">Agenda do <em>Dia</em></h1>
       <p class="page-sub">Acompanhe e gerencie os agendamentos do dia selecionado.</p>
-      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais, grade de 30 minutos e menu com identidade dourada.</div>
+      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais, grade de 30 minutos, horários individuais por dia e menu dourado.</div>
 
       <div class="date-nav" aria-label="Selecionar dia da agenda">
         <button class="date-step" type="button" onclick="agMudarDia(-1)" aria-label="Dia anterior">‹</button>
@@ -546,21 +575,11 @@ button{-webkit-tap-highlight-color:transparent;}
       <p class="page-sub">Defina os dias e faixas de atendimento usados no agendamento público.</p>
 
       <div class="card">
-        <div class="card-title">Dias de atendimento</div>
-        <div class="dias-chk" id="hor-dias"></div>
+        <div class="card-title">Horários por dia da semana</div>
+        <p class="schedule-intro">Ative os dias de atendimento e defina a abertura e o fechamento de cada um. Todos os campos poderão ser alterados depois.</p>
+        <div class="schedule-week" id="hor-grade"></div>
       </div>
       <div class="card">
-        <div class="card-title">Faixa de horário</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-lbl">Início</label>
-            <input type="time" class="form-input" id="hor-inicio">
-          </div>
-          <div class="form-group">
-            <label class="form-lbl">Fim</label>
-            <input type="time" class="form-input" id="hor-fim">
-          </div>
-        </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-lbl">Intervalo de início</label>
@@ -574,11 +593,11 @@ button{-webkit-tap-highlight-color:transparent;}
         <div class="form-group">
           <label class="form-lbl">Como funciona</label>
           <div class="schedule-note">
-            Os horários começam sempre de 30 em 30 minutos: 07:00, 07:30, 08:00 e assim por diante. A duração real do serviço continua bloqueando os horários que se sobrepõem. Exemplo: um serviço de 45 minutos iniciado às 07:00 bloqueia 07:30 e libera novamente às 08:00.
+            Os horários começam de 30 em 30 minutos. A duração real do serviço bloqueia automaticamente os horários que se sobrepõem. Exemplo: um serviço de 45 minutos iniciado às 07:00 bloqueia 07:30 e libera novamente às 08:00.
           </div>
         </div>
       </div>
-      <button class="btn btn-gold" onclick="salvarHorarios()">Salvar Configuração</button>
+      <button class="btn btn-gold" onclick="salvarHorarios()">Salvar horários da semana</button>
     </div>
 
     <!-- FINANCEIRO -->
@@ -845,6 +864,16 @@ const auth = getAuth(app);
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DIAS_COMPLETOS = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const HORARIOS_PADRAO = {
+  '0': { ativo:false, inicio:'07:00', fim:'14:00' },
+  '1': { ativo:true,  inicio:'07:00', fim:'19:00' },
+  '2': { ativo:true,  inicio:'07:00', fim:'19:00' },
+  '3': { ativo:true,  inicio:'07:00', fim:'19:00' },
+  '4': { ativo:true,  inicio:'07:00', fim:'22:00' },
+  '5': { ativo:true,  inicio:'07:00', fim:'22:00' },
+  '6': { ativo:true,  inicio:'07:00', fim:'14:00' }
+};
 const SERVICOS_PADRAO = [
   ['Barba simples',30,30],['Corte',45,45],['Corte + barba',75,60],
   ['Corte + barba + design sobrancelha',85,60],['Corte + barba + design sobrancelha pinça',100,75],
@@ -1267,32 +1296,94 @@ window.excluirServico = async (id) => {
 };
 
 // ══════════════ HORÁRIOS ══════════════
+function renderGradeHorarios(porDia = HORARIOS_PADRAO){
+  const wrap = document.getElementById('hor-grade');
+  wrap.innerHTML = DIAS_COMPLETOS.map((nome,i) => {
+    const cfg = porDia[String(i)] || HORARIOS_PADRAO[String(i)];
+    return `
+      <div class="schedule-day-row${cfg.ativo ? '' : ' is-closed'}" id="schedule-row-${i}">
+        <div class="schedule-day-main">
+          <label class="schedule-active">
+            <input type="checkbox" id="hd-${i}" ${cfg.ativo ? 'checked' : ''}>
+            <span class="schedule-switch" aria-hidden="true"></span>
+            <span class="schedule-day-name"><strong>${nome}</strong><span>${cfg.ativo ? 'Atendimento ativo' : 'Fechado'}</span></span>
+          </label>
+        </div>
+        <div class="schedule-time-field">
+          <label for="hi-${i}">Abertura</label>
+          <input type="time" id="hi-${i}" value="${cfg.inicio}" ${cfg.ativo ? '' : 'disabled'}>
+        </div>
+        <div class="schedule-time-field">
+          <label for="hf-${i}">Fechamento</label>
+          <input type="time" id="hf-${i}" value="${cfg.fim}" ${cfg.ativo ? '' : 'disabled'}>
+        </div>
+      </div>`;
+  }).join('');
+
+  DIAS_COMPLETOS.forEach((_,i) => {
+    const checkbox = document.getElementById('hd-'+i);
+    checkbox.addEventListener('change', () => atualizarEstadoLinhaHorario(i));
+  });
+}
+
+function atualizarEstadoLinhaHorario(i){
+  const ativo = document.getElementById('hd-'+i).checked;
+  const row = document.getElementById('schedule-row-'+i);
+  row.classList.toggle('is-closed', !ativo);
+  document.getElementById('hi-'+i).disabled = !ativo;
+  document.getElementById('hf-'+i).disabled = !ativo;
+  row.querySelector('.schedule-day-name span').textContent = ativo ? 'Atendimento ativo' : 'Fechado';
+}
+
 async function initHorarios(){
-  const wrap = document.getElementById('hor-dias');
-  wrap.innerHTML = DIAS.map((d,i) => `
-    <label class="dia-chk">
-      <input type="checkbox" value="${i}" id="hd-${i}">
-      <span class="dia-chk-box">${d}</span>
-    </label>`).join('');
+  let porDia = JSON.parse(JSON.stringify(HORARIOS_PADRAO));
   try {
     const snap = await getDoc(doc(db,'config','horarios'));
-    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00', intervalo:30 };
-    (h.diasAtivos||[]).forEach(i => { const c=document.getElementById('hd-'+i); if(c) c.checked=true; });
-    document.getElementById('hor-inicio').value = h.inicio||'07:00';
-    document.getElementById('hor-fim').value = h.fim||'19:00';
-  } catch(e) { toast('Erro ao carregar horários.','error'); }
+    if (snap.exists() && snap.data().porDia) {
+      const salvo = snap.data().porDia;
+      Object.keys(HORARIOS_PADRAO).forEach(key => {
+        porDia[key] = { ...HORARIOS_PADRAO[key], ...(salvo[key] || {}) };
+      });
+    }
+  } catch(e) {
+    toast('Não foi possível carregar os horários. Usando o padrão do studio.','error');
+  }
+  renderGradeHorarios(porDia);
 }
+
 window.salvarHorarios = async () => {
+  const porDia = {};
   const diasAtivos = [];
-  DIAS.forEach((_,i) => { if(document.getElementById('hd-'+i).checked) diasAtivos.push(i); });
+
+  for (let i=0; i<DIAS_COMPLETOS.length; i++) {
+    const ativo = document.getElementById('hd-'+i).checked;
+    const inicio = document.getElementById('hi-'+i).value || HORARIOS_PADRAO[String(i)].inicio;
+    const fim = document.getElementById('hf-'+i).value || HORARIOS_PADRAO[String(i)].fim;
+
+    if (ativo && inicio >= fim) {
+      toast(`Em ${DIAS_COMPLETOS[i]}, o fechamento precisa ser depois da abertura.`, 'error');
+      return;
+    }
+
+    porDia[String(i)] = { ativo, inicio, fim };
+    if (ativo) diasAtivos.push(i);
+  }
+
   const data = {
     diasAtivos,
-    inicio: document.getElementById('hor-inicio').value,
-    fim: document.getElementById('hor-fim').value,
-    intervalo: 30
+    porDia,
+    intervalo: 30,
+    inicio: porDia['1'].inicio,
+    fim: porDia['1'].fim
   };
-  try { await setDoc(doc(db,'config','horarios'), data); toast('Configuração salva.'); }
-  catch(e){ toast('Erro ao salvar.','error'); }
+
+  try {
+    await setDoc(doc(db,'config','horarios'), data);
+    toast('Horários da semana salvos.');
+  } catch(e){
+    console.error(e);
+    toast('Erro ao salvar os horários.','error');
+  }
 };
 
 // ══════════════ FINANCEIRO ══════════════

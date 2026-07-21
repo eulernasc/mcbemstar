@@ -48,11 +48,29 @@ const defaultServices = [
   { id: "padrao-22", nome: "Selagem / Botox", preco: 100, duracao: 45, ordem: 22, ativo: true }
 ];
 
+const DEFAULT_SCHEDULE = {
+  diasAtivos: [1,2,3,4,5,6],
+  intervalo: 30,
+  porDia: {
+    '0': { ativo: false, inicio: '07:00', fim: '14:00' },
+    '1': { ativo: true, inicio: '07:00', fim: '19:00' },
+    '2': { ativo: true, inicio: '07:00', fim: '19:00' },
+    '3': { ativo: true, inicio: '07:00', fim: '19:00' },
+    '4': { ativo: true, inicio: '07:00', fim: '22:00' },
+    '5': { ativo: true, inicio: '07:00', fim: '22:00' },
+    '6': { ativo: true, inicio: '07:00', fim: '14:00' }
+  }
+};
+
+function cloneDefaultSchedule() {
+  return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+}
+
 const state = {
   professionals: [],
   services: [],
   filteredServices: [],
-  schedule: { diasAtivos: [1,2,3,4,5,6], inicio: "07:00", fim: "19:00", intervalo: 30 },
+  schedule: cloneDefaultSchedule(),
   selectedProfessional: null,
   selectedService: null,
   selectedDate: null,
@@ -109,20 +127,23 @@ async function loadServices() {
 }
 
 async function loadSchedule() {
+  const base = cloneDefaultSchedule();
   try {
     const snap = await getDoc(doc(db, "config", "horarios"));
-    if (snap.exists()) {
+    if (snap.exists() && snap.data().porDia) {
       const saved = snap.data();
-      state.schedule = {
-        diasAtivos: Array.isArray(saved.diasAtivos) ? saved.diasAtivos : [1,2,3,4,5,6],
-        inicio: saved.inicio || "07:00",
-        fim: saved.fim || "19:00",
-        intervalo: 30
-      };
+      Object.keys(base.porDia).forEach(key => {
+        base.porDia[key] = { ...base.porDia[key], ...(saved.porDia[key] || {}) };
+      });
+      base.diasAtivos = Object.entries(base.porDia)
+        .filter(([,cfg]) => cfg.ativo)
+        .map(([key]) => Number(key));
+      base.intervalo = 30;
     }
   } catch (error) {
-    console.warn("Configuração de horário indisponível; usando padrão.", error);
+    console.warn("Configuração de horário indisponível; usando padrão do studio.", error);
   }
+  state.schedule = base;
 }
 
 function renderProfessionals() {
@@ -335,8 +356,13 @@ function isOverlapping(start, end, bookings = state.bookingsForDate) {
 function generateAvailableSlots() {
   if (!state.selectedDate || !state.selectedService || !state.selectedProfessional) return [];
 
-  const opening = timeToMinutes(state.schedule.inicio);
-  const closing = timeToMinutes(state.schedule.fim);
+  const [year,month,day] = state.selectedDate.split('-').map(Number);
+  const weekday = new Date(year, month - 1, day, 12, 0, 0).getDay();
+  const daySchedule = state.schedule.porDia?.[String(weekday)];
+  if (!daySchedule?.ativo) return [];
+
+  const opening = timeToMinutes(daySchedule.inicio);
+  const closing = timeToMinutes(daySchedule.fim);
   const duration = Math.max(5, Number(state.selectedService.duracao || 30));
   const interval = 30;
   const now = new Date();
