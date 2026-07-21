@@ -18,7 +18,7 @@ service cloud.firestore {
       allow write: if admin();
     }
 
-    // Agenda pública: sem nome ou telefone do cliente.
+    // Espelho público sem nome ou telefone do cliente.
     match /agenda_publica/{id} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasOnly([
@@ -29,17 +29,18 @@ service cloud.firestore {
         && request.resource.data.duracao is number
         && request.resource.data.duracao > 0
         && request.resource.data.profissionalId is string
-        && request.resource.data.status == 'confirmado';
+        && request.resource.data.status in ['aguardando','confirmado'];
       allow update, delete: if admin();
     }
 
-    // Dados pessoais ficam disponíveis somente no painel autenticado.
+    // Dados pessoais: criação pública limitada e gestão somente pelo painel.
+    // Cloud Functions usa o Admin SDK e não depende destas permissões.
     match /agendamentos/{id} {
       allow read, update, delete: if admin();
       allow create: if request.resource.data.keys().hasOnly([
           'nome','tel','servico','servicoNome','preco','duracao',
           'profissionalId','profissionalNome','data','hora','status',
-          'whatsappDestino','whatsappConfirmacaoStatus','criadoEm'
+          'whatsappDestino','whatsappConfirmacaoStatus','whatsappRespostaStatus','criadoEm'
         ])
         && request.resource.data.nome is string
         && request.resource.data.tel is string
@@ -49,8 +50,9 @@ service cloud.firestore {
         && request.resource.data.profissionalId is string
         && request.resource.data.profissionalNome is string
         && request.resource.data.whatsappDestino is string
-        && request.resource.data.whatsappConfirmacaoStatus == 'pendente_api'
-        && request.resource.data.status == 'confirmado';
+        && request.resource.data.whatsappConfirmacaoStatus in ['pendente_envio','pendente_api']
+        && request.resource.data.whatsappRespostaStatus == 'aguardando'
+        && request.resource.data.status in ['aguardando','confirmado'];
     }
 
     match /financeiro/{id} {

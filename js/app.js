@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore,
+  initializeFirestore,
   collection,
   getDocs,
   query,
@@ -12,7 +12,10 @@ import {
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+  // Mais estável em navegadores internos do WhatsApp e em alguns iPhones.
+  experimentalForceLongPolling: true
+});
 
 const defaultProfessional = {
   id: "maykon-castro",
@@ -93,6 +96,25 @@ const timeToMinutes = (time) => {
 };
 const minutesToTime = (minutes) => `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 
+function withTimeout(promise, ms = 18000) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Tempo esgotado ao conectar ao Firestore.")), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+async function getDocsWithRetry(ref, attempts = 2) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try { return await withTimeout(getDocs(ref)); }
+    catch (error) {
+      lastError = error;
+      if (i < attempts - 1) await new Promise(resolve => setTimeout(resolve, 1200));
+    }
+  }
+  throw lastError;
+}
+
 function showToast(message, type = "success") {
   const el = $("toast");
   el.textContent = message;
@@ -103,7 +125,7 @@ function showToast(message, type = "success") {
 
 async function loadProfessionals() {
   try {
-    const snap = await getDocs(query(collection(db, "profissionais"), where("ativo", "==", true)));
+    const snap = await getDocsWithRetry(query(collection(db, "profissionais"), where("ativo", "==", true)));
     const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.ordem || 0) - (b.ordem || 0));
     state.professionals = list.length ? list : [defaultProfessional];
   } catch (error) {
@@ -115,7 +137,7 @@ async function loadProfessionals() {
 
 async function loadServices() {
   try {
-    const snap = await getDocs(query(collection(db, "servicos"), where("ativo", "==", true)));
+    const snap = await getDocsWithRetry(query(collection(db, "servicos"), where("ativo", "==", true)));
     const fromDb = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.ordem || 0) - (b.ordem || 0));
     state.services = fromDb.length ? fromDb : defaultServices;
   } catch (error) {
@@ -129,7 +151,7 @@ async function loadServices() {
 async function loadSchedule() {
   const base = cloneDefaultSchedule();
   try {
-    const snap = await getDoc(doc(db, "config", "horarios"));
+    const snap = await withTimeout(getDoc(doc(db, "config", "horarios")));
     if (snap.exists() && snap.data().porDia) {
       const saved = snap.data();
       Object.keys(base.porDia).forEach(key => {
@@ -307,8 +329,8 @@ function belongsToSelectedProfessional(booking) {
 
 async function fetchBookingsForDate(date) {
   const requests = [
-    getDocs(query(collection(db, "agenda_publica"), where("data", "==", date))),
-    getDocs(query(collection(db, "agendamentos"), where("data", "==", date)))
+    getDocsWithRetry(query(collection(db, "agenda_publica"), where("data", "==", date))),
+    getDocsWithRetry(query(collection(db, "agendamentos"), where("data", "==", date)))
   ];
   const settled = await Promise.allSettled(requests);
   const merged = new Map();
@@ -402,7 +424,7 @@ function formatPhone(value) {
 
 function showBookingSuccess({ name, phone }) {
   const [year, month, day] = state.selectedDate.split("-");
-  $("success-copy").textContent = `${name}, seu agendamento foi registrado. A confirmação automática será destinada somente ao WhatsApp informado no cadastro.`;
+  $("success-copy").textContent = `${name}, seu agendamento foi registrado. Você receberá no WhatsApp informado uma mensagem para confirmar, remarcar ou cancelar o horário.`;
   $("success-details").innerHTML = `
     <div><span>Profissional</span><strong>${escapeHtml(state.selectedProfessional.nome)}</strong></div>
     <div><span>Serviço</span><strong>${escapeHtml(state.selectedService.nome)}</strong></div>
@@ -454,9 +476,10 @@ async function confirmBooking() {
       profissionalNome: state.selectedProfessional.nome,
       data: state.selectedDate,
       hora: state.selectedTime,
-      status: "confirmado",
+      status: "aguardando",
       whatsappDestino: phone,
-      whatsappConfirmacaoStatus: "pendente_api",
+      whatsappConfirmacaoStatus: "pendente_envio",
+      whatsappRespostaStatus: "aguardando",
       criadoEm: new Date().toISOString()
     });
     await setDoc(publicRef, {
@@ -464,7 +487,7 @@ async function confirmBooking() {
       hora: state.selectedTime,
       duracao: Number(state.selectedService.duracao || 30),
       profissionalId: state.selectedProfessional.id,
-      status: "confirmado"
+      status: "aguardando"
     }).catch(error => console.warn("Agenda pública não pôde ser espelhada.", error));
 
     closeBooking();

@@ -1,72 +1,71 @@
 # MC Bem Estar Studio
 
-Sistema de agendamento responsivo, com foco em celular, tablet, iPad e computador.
+Sistema de agendamento responsivo para celular, tablet, iPad e computador.
 
-## Publicação no GitHub Pages
+## Principais recursos
 
-Envie todos os arquivos e pastas para a raiz do repositório:
+- escolha do profissional antes do serviço;
+- foto editável do profissional pelo painel;
+- horários de início a cada 30 minutos;
+- duração real do serviço bloqueando sobreposições;
+- horários diferentes por dia da semana;
+- painel administrativo responsivo;
+- agenda visual em formato de calendário semanal ou diário;
+- cores por status: aguardando, confirmado, remarcando, concluído e cancelado;
+- central de confirmações do WhatsApp;
+- relatório financeiro em PDF;
+- estrutura pronta para a WhatsApp Cloud API.
+
+## Publicação do site
+
+Envie todos os arquivos e pastas para a raiz do repositório do GitHub Pages.
+
+Arquivos públicos principais:
 
 - `index.html`
 - `admin.html`
+- `agendamento.html`
 - `assets/`
 - `css/`
 - `js/`
-- `firestore.rules.example`
 
-## Fluxo do cliente
+A pasta `functions/`, o `firebase.json` e o `.firebaserc` são usados para implantar o backend do WhatsApp no Firebase, não pelo GitHub Pages.
 
-1. Escolhe o profissional.
-2. Escolhe o serviço.
-3. Informa nome e WhatsApp.
-4. Seleciona data e horário.
-5. Confirma o agendamento.
+## Agenda
 
-O projeto começa com **Maykon Castro**, usando `assets/maykon-castro.webp`.
+O painel possui dois modos:
 
-## Horários
+- **Semana:** colunas de segunda a sábado e linha do tempo vertical;
+- **Dia:** uma coluna ampliada, recomendada para celulares.
 
-Os horários iniciais já estão configurados assim:
+Os blocos ocupam a altura proporcional à duração do serviço.
 
-- Segunda, terça e quarta: **07:00 às 19:00**
-- Quinta e sexta: **07:00 às 22:00**
-- Sábado: **07:00 às 14:00**
+## Horários padrão
+
+- Segunda a quarta: 07:00 às 19:00
+- Quinta e sexta: 07:00 às 22:00
+- Sábado: 07:00 às 14:00
 - Domingo: fechado
 
-No painel administrativo, cada dia possui seu próprio botão de ativação, horário de abertura e horário de fechamento. Tudo pode ser alterado posteriormente.
-
-Os inícios são oferecidos de 30 em 30 minutos: 07:00, 07:30, 08:00, 08:30 e assim por diante. A duração real do serviço continua sendo respeitada. Exemplo: um atendimento de 45 minutos às 07:00 bloqueia o início das 07:30 e libera novamente às 08:00.
-
-## Painel administrativo
-
-O painel fica em `admin.html` e exige o usuário cadastrado no Firebase Authentication.
-
-No primeiro acesso:
-
-1. Em **Profissionais**, clique em **Cadastrar Maykon** para gravar o profissional padrão no Firestore.
-2. Em **Serviços**, clique em **Importar catálogo**.
-3. Em **Horários**, ajuste dias, abertura e fechamento. A grade de início permanece em 30 minutos.
-
-O painel possui Agenda, Profissionais, Serviços, Horários, Financeiro, DRE e Relatório.
+Tudo pode ser alterado na aba **Horários**.
 
 ## WhatsApp
 
-O site não abre mais uma mensagem para o proprietário.
+A interface e o backend estão preparados para:
 
-Cada agendamento salva:
+- enviar confirmação somente ao cliente;
+- receber Confirmar, Remarcar ou Cancelar;
+- atualizar a agenda automaticamente;
+- fornecer uma página segura para o cliente escolher outro horário.
 
-- `whatsappDestino`: telefone do cliente;
-- `whatsappConfirmacaoStatus`: `pendente_api`.
-
-Esses campos estão preparados para a futura integração com a API oficial do WhatsApp, que enviará a confirmação somente ao cliente.
+A integração só começa a enviar mensagens depois da configuração da Meta e da implantação das Cloud Functions. Veja `WHATSAPP-SETUP.md`.
 
 ## Firebase
 
-O projeto utiliza:
+O projeto usa:
 
-- Firestore para profissionais, serviços, configurações, agenda e financeiro;
-- Firebase Authentication para o painel administrativo.
+- Firestore;
+- Firebase Authentication;
+- Cloud Functions para a API do WhatsApp.
 
-Copie o conteúdo de `firestore.rules.example` para as regras do Firestore antes de colocar a nova versão em produção.
-
-## Foto dos profissionais
-Na aba **Profissionais**, clique em **Editar** ou **+ Novo Profissional** e use **Escolher foto**. O painel aceita JPG, PNG e WEBP, comprime a imagem automaticamente e salva junto ao cadastro no Firestore. Não é necessário configurar o Firebase Storage para esta versão.
+Publique o conteúdo de `firestore.rules` no Firestore. Para as Functions, o projeto precisa estar no plano Blaze.

@@ -407,6 +407,11 @@ button{-webkit-tap-highlight-color:transparent;}
 .professional-file-button svg{width:17px;height:17px;flex:none;}
 .professional-photo-help{font-size:10px;line-height:1.55;color:var(--gray2);margin:0 0 18px;}
 .professional-photo-picker .btn[disabled],#mp-salvar[disabled]{opacity:.55;pointer-events:none;}
+.professionals-loading-state,.professionals-error-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:150px;text-align:center;}
+.professionals-loading-state strong,.professionals-error-state strong{color:var(--black);font-size:14px;}
+.professionals-loading-state small,.professionals-error-state span{color:var(--gray2);font-size:12px;}
+.loading-spinner{width:28px;height:28px;border:2px solid rgba(183,135,35,.22);border-top-color:var(--gold);border-radius:50%;animation:spin-prof .75s linear infinite;}
+@keyframes spin-prof{to{transform:rotate(360deg)}}
 @media(max-width:520px){
   .professional-photo-picker{display:grid;grid-template-columns:1fr;}
   .professional-photo-picker .btn{width:100%;justify-content:center;}
@@ -507,6 +512,86 @@ button{-webkit-tap-highlight-color:transparent;}
 
 .admin-update-note{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:8px 12px;margin:-8px 0 20px;border-radius:999px;background:#f6eedb;border:1px solid rgba(179,138,47,.22);color:#75602d;font-size:10px;}
 @media(max-width:720px){.admin-update-note{width:100%;border-radius:12px;line-height:1.45;align-items:flex-start;}}
+
+/* ══════════════════════════════════════════════════════════════
+   AGENDA EM CALENDÁRIO — SEMANA E DIA
+   ══════════════════════════════════════════════════════════════ */
+.calendar-page-head{align-items:flex-start;margin-bottom:18px;}
+.calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px;}
+.calendar-nav-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.calendar-nav-btn,.calendar-today-btn,.calendar-view-btn{height:42px;border-radius:12px;border:1px solid rgba(179,138,47,.28);background:#fff;color:#6f5522;font-size:11px;font-weight:800;letter-spacing:.06em;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.calendar-nav-btn{width:42px;padding:0;font-size:20px;}
+.calendar-nav-btn:hover,.calendar-today-btn:hover,.calendar-view-btn:hover{border-color:#b38a2f;background:#fbf7ed;}
+.calendar-period-picker{height:42px;min-width:250px;position:relative;display:flex;align-items:center;justify-content:center;padding:0 42px 0 14px;border:1px solid rgba(179,138,47,.28);border-radius:12px;background:#fff;color:#1d1d1b;font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(45,39,27,.04);}
+.calendar-period-picker::after{content:'▾';position:absolute;right:14px;color:#8a6e2f;font-family:'Manrope',sans-serif;font-size:13px;}
+.calendar-period-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;color-scheme:light;}
+.calendar-view-switch{display:flex;gap:4px;padding:4px;border-radius:13px;background:#eee9de;border:1px solid rgba(179,138,47,.18);}
+.calendar-view-btn{height:34px;border:0;background:transparent;padding:0 14px;color:#817a6e;}
+.calendar-view-btn.active{background:linear-gradient(135deg,#c49b42,#936c21);color:#fff;box-shadow:0 6px 15px rgba(147,108,33,.20);}
+.calendar-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px;padding:10px 13px;border-radius:12px;background:#fff;border:1px solid rgba(179,138,47,.18);color:#6f6a61;font-size:10px;font-weight:700;}
+.legend-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.legend-dot.aguardando{background:#a9a59d;}.legend-dot.confirmado{background:#0f5b4f;}.legend-dot.remarcando{background:#b98625;}.legend-dot.concluido{background:#41836c;}.legend-dot.cancelado{background:#a54b4b;}
+.calendar-shell{position:relative;background:#fff;border:1px solid rgba(179,138,47,.22);border-radius:20px;overflow:hidden;box-shadow:0 15px 45px rgba(45,39,27,.07);}
+.calendar-loading,.calendar-empty{min-height:320px;display:grid;place-items:center;text-align:center;color:#8b857b;font-size:13px;padding:30px;}
+.calendar-scroll{overflow:auto;max-height:calc(100vh - 300px);min-height:560px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.calendar-grid{display:grid;grid-template-columns:72px repeat(var(--calendar-days,6),minmax(148px,1fr));min-width:980px;background:#fff;}
+.calendar-grid.day-mode{grid-template-columns:72px minmax(320px,1fr);min-width:0;}
+.calendar-corner,.calendar-day-head{position:sticky;top:0;z-index:16;height:76px;background:#fbfaf7;border-bottom:1px solid #ded8ca;}
+.calendar-corner{left:0;z-index:20;border-right:1px solid #ded8ca;display:grid;place-items:center;color:#987528;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;}
+.calendar-day-head{display:flex;flex-direction:column;justify-content:center;align-items:center;border-right:1px solid #e8e3d8;text-align:center;}
+.calendar-day-head strong{font-family:'Cormorant Garamond',serif;font-size:23px;line-height:1;color:#1f1d18;}
+.calendar-day-head span{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7f796f;font-weight:800;margin-bottom:5px;}
+.calendar-day-head.is-today{background:#f4ecda;}
+.calendar-day-head.is-today strong{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#174f46;color:#fff;}
+.calendar-time-axis{position:sticky;left:0;z-index:12;background:#fbfaf7;border-right:1px solid #ded8ca;height:var(--calendar-height);}
+.calendar-time-label{position:absolute;left:0;right:0;transform:translateY(-50%);padding-right:10px;text-align:right;color:#8c877e;font-size:10px;font-weight:700;}
+.calendar-day-column{position:relative;height:var(--calendar-height);border-right:1px solid #e5e0d5;background:repeating-linear-gradient(to bottom,#fff 0,#fff calc(var(--slot-height) - 1px),#ece8df calc(var(--slot-height) - 1px),#ece8df var(--slot-height));}
+.calendar-day-column::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc((var(--slot-height)/2) - 1px),rgba(221,216,206,.35) calc((var(--slot-height)/2) - 1px),rgba(221,216,206,.35) calc(var(--slot-height)/2));pointer-events:none;}
+.calendar-day-column.is-closed{background:#f3f1ed;}
+.calendar-day-column.is-closed::before{content:'Fechado';position:sticky;top:90px;display:block;text-align:center;padding-top:20px;color:#a29c92;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+.calendar-now-line{position:absolute;left:0;right:0;height:2px;background:#c84c47;z-index:8;pointer-events:none;}
+.calendar-now-line::before{content:'';position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:#c84c47;}
+.calendar-event{position:absolute;left:6px;right:6px;z-index:9;border:0;border-radius:10px;padding:7px 8px;text-align:left;overflow:hidden;color:#fff;box-shadow:0 8px 16px rgba(0,0,0,.13);transition:.16s;min-height:32px;}
+.calendar-event:hover{transform:translateY(-1px);filter:brightness(1.04);}
+.calendar-event.status-aguardando{background:#aaa69e;color:#fff;}.calendar-event.status-confirmado{background:#0f5b4f;}.calendar-event.status-remarcando{background:#b98625;}.calendar-event.status-concluido{background:#41836c;}.calendar-event.status-cancelado{background:#a54b4b;opacity:.76;}
+.calendar-event strong{display:block;font-size:11px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.calendar-event span{display:block;margin-top:3px;font-size:9px;line-height:1.2;opacity:.86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.calendar-event small{display:block;margin-top:2px;font-size:8px;line-height:1.15;opacity:.76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.calendar-summary{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0;}
+.calendar-summary-card{min-width:128px;padding:11px 13px;border-radius:12px;background:#fff;border:1px solid rgba(179,138,47,.18);}
+.calendar-summary-card span{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#8b8478;font-weight:800;}.calendar-summary-card strong{display:block;margin-top:2px;font-family:'Cormorant Garamond',serif;font-size:22px;color:#1d1d1b;}
+.calendar-mobile-help{display:none;margin:0 0 10px;color:#7d776d;font-size:10px;line-height:1.5;}
+.event-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 18px;}
+.event-detail-item{padding:12px;border-radius:12px;background:#f8f6f1;border:1px solid rgba(179,138,47,.17);}
+.event-detail-item span{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#8b806b;font-weight:800;margin-bottom:4px;}.event-detail-item strong{display:block;font-size:12px;color:#1f1d18;overflow-wrap:anywhere;}
+.event-status-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.event-status-actions .btn{justify-content:center;padding-left:8px;padding-right:8px;}
+.whatsapp-preview{padding:14px;border-radius:14px;background:#eef6f2;border:1px solid #cfe4da;color:#245448;font-size:11px;line-height:1.55;margin-top:12px;}
+@media(max-width:720px){
+  .calendar-toolbar{display:block;}.calendar-nav-group{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:7px;}.calendar-period-picker{min-width:0;width:100%;font-size:17px;padding-left:8px;padding-right:27px;}.calendar-today-btn{grid-column:1/-1;width:100%;}.calendar-view-switch{margin-top:9px;display:grid;grid-template-columns:1fr 1fr;}.calendar-view-btn{width:100%;}.calendar-legend{gap:8px;font-size:9px;}.calendar-mobile-help{display:block;}.calendar-shell{border-radius:14px;}.calendar-scroll{max-height:calc(100dvh - 265px);min-height:520px;}.calendar-grid:not(.day-mode){min-width:990px;}.calendar-grid.day-mode{min-width:100%;}.calendar-corner,.calendar-day-head{height:68px;}.calendar-day-head strong{font-size:21px;}.calendar-event{left:4px;right:4px;padding:6px;}.event-detail-grid{grid-template-columns:1fr;}.event-status-actions{grid-template-columns:1fr;}.calendar-summary-card{flex:1;min-width:100px;}}
+
+
+/* Central de confirmações do WhatsApp */
+.whatsapp-admin-card{background:#fff;border:1px solid rgba(179,138,47,.2);border-radius:20px;overflow:hidden;box-shadow:0 12px 36px rgba(45,39,27,.06);}
+.whatsapp-admin-head{padding:20px;border-bottom:1px solid #ebe6da;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:14px;align-items:center;}
+.whatsapp-search{display:flex;align-items:center;gap:9px;height:44px;padding:0 14px;border-radius:12px;background:#f7f5f0;border:1px solid #e5dfd1;}
+.whatsapp-search svg{width:18px;height:18px;color:#857e71;}.whatsapp-search input{width:100%;border:0;background:transparent;outline:none;color:#1d1d1b;font-size:13px;}
+.whatsapp-filters{display:flex;gap:7px;flex-wrap:wrap;}
+.whatsapp-filter{height:36px;padding:0 13px;border-radius:999px;border:1px solid #ddd6c7;background:#fff;color:#716b61;font-size:10px;font-weight:800;}
+.whatsapp-filter.active{background:#174f46;color:#fff;border-color:#174f46;}
+.whatsapp-list{display:grid;}
+.whatsapp-row{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:13px;align-items:center;padding:15px 20px;border:0;border-bottom:1px solid #ede8de;background:#fff;text-align:left;}
+.whatsapp-row:last-child{border-bottom:0}.whatsapp-row:hover{background:#fbfaf6;}
+.whatsapp-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#e7eeeb;color:#174f46;font-weight:900;font-size:13px;position:relative;}
+.whatsapp-avatar::after{content:'';position:absolute;right:1px;bottom:2px;width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#b98625;}
+.whatsapp-avatar.respondido::after{background:#2a9b79}.whatsapp-avatar.falha::after{background:#bd5555;}
+.whatsapp-main strong{display:block;color:#1d1d1b;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.whatsapp-main span{display:block;margin-top:3px;color:#8b867d;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.whatsapp-meta{text-align:right}.whatsapp-meta time{display:block;color:#9a958c;font-size:9px;margin-bottom:5px}.whatsapp-badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#f4ecda;color:#83631f;font-size:8px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;}.whatsapp-badge.respondido{background:#e4f1eb;color:#21664f}.whatsapp-badge.falha{background:#f7e8e6;color:#9b433d}.whatsapp-badge.enviado{background:#e8eeee;color:#315e59;}
+.whatsapp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}.whatsapp-stat{padding:13px;border-radius:13px;background:#fff;border:1px solid rgba(179,138,47,.18)}.whatsapp-stat span{display:block;font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:#8c8579;font-weight:800}.whatsapp-stat strong{display:block;margin-top:3px;font-family:'Cormorant Garamond',serif;font-size:24px;color:#1d1d1b;}
+.whatsapp-integration-note{padding:13px 15px;margin-bottom:14px;border-radius:13px;border:1px solid #cfe4da;background:#eef6f2;color:#315d50;font-size:11px;line-height:1.6;}
+@media(max-width:720px){.whatsapp-admin-head{grid-template-columns:1fr;padding:14px}.whatsapp-filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}.whatsapp-filter{flex:none}.whatsapp-row{grid-template-columns:44px minmax(0,1fr);padding:13px}.whatsapp-avatar{width:42px;height:42px}.whatsapp-meta{grid-column:2;text-align:left;display:flex;align-items:center;gap:8px}.whatsapp-meta time{margin:0}.whatsapp-stats{grid-template-columns:1fr 1fr}.whatsapp-main strong{font-size:12px}.whatsapp-main span{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -539,6 +624,7 @@ button{-webkit-tap-highlight-color:transparent;}
 
   <nav class="mobile-tabs" aria-label="Navegação do painel">
     <button class="mobile-tab active" data-page="agenda" onclick="showPage('agenda',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg><span>Agenda</span></button>
+    <button class="mobile-tab" data-page="whatsapp" onclick="showPage('whatsapp',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.5c.4 2.7 2.2 4.5 4.9 5"/></svg><span>WhatsApp</span></button>
     <button class="mobile-tab" data-page="profissionais" onclick="showPage('profissionais',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.9.2 4.5 2 5 5.5"/></svg><span>Profissionais</span></button>
     <button class="mobile-tab" data-page="servicos" onclick="showPage('servicos',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 11 7M8.5 15.5l11-7M13 12l6.5 4.2M13 12l6.5-4.2"/></svg><span>Serviços</span></button>
     <button class="mobile-tab" data-page="horarios" onclick="showPage('horarios',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horários</span></button>
@@ -557,6 +643,7 @@ button{-webkit-tap-highlight-color:transparent;}
     </div>
     <nav class="sb-nav">
       <div class="sb-item active" data-page="agenda" onclick="showPage('agenda',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg></span><span>Agenda</span></div>
+      <div class="sb-item" data-page="whatsapp" onclick="showPage('whatsapp',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M8.7 8.5c.4 2.7 2.2 4.5 4.9 5"/></svg></span><span>WhatsApp</span></div>
       <div class="sb-item" data-page="profissionais" onclick="showPage('profissionais',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.9.2 4.5 2 5 5.5"/></svg></span><span>Profissionais</span></div>
       <div class="sb-item" data-page="servicos" onclick="showPage('servicos',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 11 7M8.5 15.5l11-7M13 12l6.5 4.2M13 12l6.5-4.2"/></svg></span><span>Serviços</span></div>
       <div class="sb-item" data-page="horarios" onclick="showPage('horarios',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Horários</span></div>
@@ -575,25 +662,70 @@ button{-webkit-tap-highlight-color:transparent;}
 
     <!-- AGENDA -->
     <div class="page active" id="page-agenda">
-      <div class="page-tag">Agenda do studio</div>
-      <h1 class="page-title">Agenda do <em>Dia</em></h1>
-      <p class="page-sub">Acompanhe e gerencie os agendamentos do dia selecionado.</p>
-      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais com escolha de foto, grade de 30 minutos, horários individuais por dia e menu dourado.</div>
-
-      <div class="date-nav" aria-label="Selecionar dia da agenda">
-        <button class="date-step" type="button" onclick="agMudarDia(-1)" aria-label="Dia anterior">‹</button>
-        <label class="date-picker-shell" title="Clique para escolher uma data">
-          <span class="date-picker-icon">📅</span>
-          <span class="date-lbl" id="ag-date-lbl"></span>
-          <input type="date" id="ag-date-picker" aria-label="Escolher data da agenda">
-        </label>
-        <button class="date-step" type="button" onclick="agMudarDia(1)" aria-label="Próximo dia">›</button>
-        <button class="date-today-btn" type="button" onclick="agIrHoje()">Ir para hoje</button>
+      <div class="page-head calendar-page-head">
+        <div>
+          <div class="page-tag">Agenda do studio</div>
+          <h1 class="page-title">Agenda em <em>Calendário</em></h1>
+          <p class="page-sub">Visualize a semana como uma agenda profissional. Os blocos ocupam o tempo real de cada serviço.</p>
+        </div>
       </div>
 
-      <div id="ag-list"></div>
+      <div class="calendar-toolbar">
+        <div class="calendar-nav-group" aria-label="Navegação da agenda">
+          <button class="calendar-nav-btn" type="button" onclick="agNavegar(-1)" aria-label="Período anterior">‹</button>
+          <label class="calendar-period-picker" title="Clique para escolher uma data">
+            <span id="ag-period-label"></span>
+            <input type="date" id="ag-date-picker" aria-label="Escolher uma data da agenda">
+          </label>
+          <button class="calendar-nav-btn" type="button" onclick="agNavegar(1)" aria-label="Próximo período">›</button>
+          <button class="calendar-today-btn" type="button" onclick="agIrHoje()">Hoje</button>
+        </div>
+        <div class="calendar-view-switch" aria-label="Modo de visualização">
+          <button class="calendar-view-btn active" id="agenda-view-week" type="button" onclick="agDefinirVisualizacao('week')">Semana</button>
+          <button class="calendar-view-btn" id="agenda-view-day" type="button" onclick="agDefinirVisualizacao('day')">Dia</button>
+        </div>
+      </div>
+
+      <div class="calendar-legend" aria-label="Legenda dos status">
+        <span class="legend-item"><i class="legend-dot aguardando"></i>Aguardando resposta</span>
+        <span class="legend-item"><i class="legend-dot confirmado"></i>Confirmado</span>
+        <span class="legend-item"><i class="legend-dot remarcando"></i>Remarcando</span>
+        <span class="legend-item"><i class="legend-dot concluido"></i>Concluído</span>
+        <span class="legend-item"><i class="legend-dot cancelado"></i>Cancelado</span>
+      </div>
+      <p class="calendar-mobile-help">No celular, use “Dia” para uma visão maior ou arraste a agenda semanal para os lados.</p>
+
+      <div class="calendar-shell">
+        <div id="agenda-calendar" class="calendar-loading">Carregando calendário...</div>
+      </div>
+      <div class="calendar-summary" id="agenda-summary"></div>
     </div>
 
+
+    <!-- WHATSAPP -->
+    <div class="page" id="page-whatsapp">
+      <div class="page-head">
+        <div>
+          <div class="page-tag">Confirmações automáticas</div>
+          <h1 class="page-title">Central do <em>WhatsApp</em></h1>
+          <p class="page-sub">Acompanhe mensagens de confirmação, respostas e solicitações de remarcação ou cancelamento.</p>
+        </div>
+      </div>
+      <div class="whatsapp-integration-note"><strong>Integração oficial:</strong> esta tela já está pronta para exibir os retornos da Cloud API. Até a configuração da Meta e das Cloud Functions, os novos agendamentos aparecem como “aguardando envio”.</div>
+      <div class="whatsapp-stats" id="whatsapp-stats"></div>
+      <div class="whatsapp-admin-card">
+        <div class="whatsapp-admin-head">
+          <label class="whatsapp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="whatsapp-search" type="search" placeholder="Buscar cliente..." oninput="filtrarWhatsAppAdmin()"></label>
+          <div class="whatsapp-filters" id="whatsapp-filters">
+            <button class="whatsapp-filter active" data-filter="todos" onclick="definirFiltroWhatsApp('todos',this)">Todos</button>
+            <button class="whatsapp-filter" data-filter="respondido" onclick="definirFiltroWhatsApp('respondido',this)">Responderam</button>
+            <button class="whatsapp-filter" data-filter="aguardando" onclick="definirFiltroWhatsApp('aguardando',this)">Aguardando</button>
+            <button class="whatsapp-filter" data-filter="falha" onclick="definirFiltroWhatsApp('falha',this)">Não entregue</button>
+          </div>
+        </div>
+        <div class="whatsapp-list" id="whatsapp-list"><div class="empty-state">Carregando confirmações...</div></div>
+      </div>
+    </div>
 
     <!-- PROFISSIONAIS -->
     <div class="page" id="page-profissionais">
@@ -900,6 +1032,26 @@ button{-webkit-tap-highlight-color:transparent;}
   </div>
 </div>
 
+<!-- MODAL DETALHES DO AGENDAMENTO -->
+<div class="modal-bg" id="modal-agendamento-detalhe">
+  <div class="modal">
+    <h3 class="modal-title">Detalhes do agendamento</h3>
+    <div class="event-detail-grid" id="event-detail-grid"></div>
+    <div class="whatsapp-preview" id="event-whatsapp-preview"></div>
+    <div class="event-status-actions">
+      <button class="btn btn-ghost btn-sm" onclick="agDetalheStatus('aguardando')">Aguardando</button>
+      <button class="btn btn-gold btn-sm" onclick="agDetalheStatus('confirmado')">Confirmar</button>
+      <button class="btn btn-ghost btn-sm" onclick="agDetalheStatus('remarcando')">Remarcar</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirModalConcluirDoDetalhe()">Concluir</button>
+      <button class="btn btn-danger btn-sm" onclick="agDetalheStatus('cancelado')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="agExcluirDoDetalhe()">Excluir</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-agendamento-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SENHA -->
 <div class="modal-bg" id="modal-senha">
   <div class="modal">
@@ -928,7 +1080,7 @@ button{-webkit-tap-highlight-color:transparent;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -940,7 +1092,11 @@ const firebaseConfig = {
   appId: "1:387718746394:web:ae6a95be189ab6a6c49ca3"
 };
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const db = initializeFirestore(app, {
+  // O navegador interno do WhatsApp/iPhone pode manter o WebChannel preso.
+  // Long polling torna as consultas do Firestore mais estáveis nesses aparelhos.
+  experimentalForceLongPolling: true
+});
 const auth = getAuth(app);
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -971,6 +1127,25 @@ const PROFISSIONAL_PADRAO = { nome:'Maykon Castro', especialidade:'Cabeleireiro 
 // ── Utils ──
 function fmtMoeda(v){ return 'R$ ' + Number(v||0).toFixed(2).replace('.',','); }
 function fmtData(ds){ const [a,m,d] = ds.split('-'); return `${d}/${m}/${a}`; }
+function comTimeout(promise, ms = 18000, mensagem = 'A conexão demorou mais que o esperado.') {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(mensagem)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+async function getDocsComRetry(ref, tentativas = 2) {
+  let ultimoErro;
+  for (let i = 0; i < tentativas; i++) {
+    try {
+      return await comTimeout(getDocs(ref), 18000, 'Tempo esgotado ao conectar ao Firestore.');
+    } catch (erro) {
+      ultimoErro = erro;
+      if (i < tentativas - 1) await new Promise(resolve => setTimeout(resolve, 1200));
+    }
+  }
+  throw ultimoErro;
+}
 function toast(msg, tipo='success') {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1073,165 +1248,352 @@ window.showPage = (page, el) => {
   const activeMobile = document.querySelector('.mobile-tab[data-page="'+page+'"]');
   if (activeMobile) activeMobile.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   if (page === 'profissionais') carregarProfissionaisAdmin();
+  if (page === 'whatsapp') carregarWhatsAppAdmin();
 };
 
 // ══════════════ AGENDA ══════════════
 let _agData = new Date(); _agData.setHours(0,0,0,0);
+let _agVisualizacao = window.innerWidth <= 720 ? 'day' : 'week';
 let _agsAtuais = [];
+let _agHorarioConfig = JSON.parse(JSON.stringify(HORARIOS_PADRAO));
+let _agDetalheId = null;
+const CALENDAR_SLOT_HEIGHT = 52;
 function agDs(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function agInicioSemana(data){
+  const d = new Date(data); d.setHours(0,0,0,0);
+  const ajuste = d.getDay() === 0 ? -6 : 1 - d.getDay();
+  d.setDate(d.getDate()+ajuste); return d;
+}
+function agAdicionarDias(data,qtd){ const d=new Date(data); d.setDate(d.getDate()+qtd); d.setHours(0,0,0,0); return d; }
+function agMinutos(hora='00:00'){ const [h,m]=String(hora).split(':').map(Number); return h*60+m; }
+function agHora(minutos){ return `${String(Math.floor(minutos/60)).padStart(2,'0')}:${String(minutos%60).padStart(2,'0')}`; }
+function agEscape(valor=''){ return String(valor).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function agStatusNormalizado(status='aguardando'){
+  const mapa={pendente:'aguardando',confirmado:'confirmado',aguardando:'aguardando',remarcando:'remarcando',concluido:'concluido',cancelado:'cancelado'};
+  return mapa[status]||'aguardando';
+}
+function agStatusLabel(status){ return ({aguardando:'Aguardando resposta',confirmado:'Confirmado',remarcando:'Remarcando',concluido:'Concluído',cancelado:'Cancelado'})[agStatusNormalizado(status)]; }
+async function agCarregarConfiguracao(){
+  try{
+    const snap=await comTimeout(getDoc(doc(db,'config','horarios')));
+    if(snap.exists() && snap.data().porDia){
+      _agHorarioConfig={...HORARIOS_PADRAO,...snap.data().porDia};
+    }
+  }catch(e){ console.warn('Agenda usando horários padrão.',e); }
+}
 function initAgenda(){
-  const picker = document.getElementById('ag-date-picker');
-  if (picker && !picker.dataset.ready) {
-    picker.dataset.ready = '1';
-    picker.addEventListener('change', () => {
-      if (!picker.value) return;
-      const [year,month,day] = picker.value.split('-').map(Number);
-      _agData = new Date(year, month-1, day);
-      _agData.setHours(0,0,0,0);
-      renderAgLbl();
+  const picker=document.getElementById('ag-date-picker');
+  if(picker && !picker.dataset.ready){
+    picker.dataset.ready='1';
+    picker.addEventListener('change',()=>{
+      if(!picker.value)return;
+      const [a,m,d]=picker.value.split('-').map(Number);
+      _agData=new Date(a,m-1,d); _agData.setHours(0,0,0,0);
       carregarAgenda();
     });
   }
-  renderAgLbl();
+  agDefinirVisualizacao(_agVisualizacao,false);
   carregarAgenda();
 }
-window.agMudarDia = (dir) => { _agData.setDate(_agData.getDate()+dir); renderAgLbl(); carregarAgenda(); };
-window.agIrHoje = () => { _agData = new Date(); _agData.setHours(0,0,0,0); renderAgLbl(); carregarAgenda(); };
-function renderAgLbl(){
-  const d = _agData;
-  document.getElementById('ag-date-lbl').textContent = d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}).replace('.', '');
-  const picker = document.getElementById('ag-date-picker');
-  if (picker) picker.value = agDs(d);
+window.agDefinirVisualizacao=(modo,recarregar=true)=>{
+  _agVisualizacao=modo==='day'?'day':'week';
+  document.getElementById('agenda-view-week')?.classList.toggle('active',_agVisualizacao==='week');
+  document.getElementById('agenda-view-day')?.classList.toggle('active',_agVisualizacao==='day');
+  if(recarregar) carregarAgenda();
+};
+window.agNavegar=(direcao)=>{
+  _agData=agAdicionarDias(_agData,direcao*(_agVisualizacao==='week'?7:1));
+  carregarAgenda();
+};
+window.agMudarDia=(direcao)=>{ _agData=agAdicionarDias(_agData,direcao); carregarAgenda(); };
+window.agIrHoje=()=>{ _agData=new Date(); _agData.setHours(0,0,0,0); carregarAgenda(); };
+function agPeriodo(){
+  if(_agVisualizacao==='day') return {inicio:new Date(_agData),fim:new Date(_agData),dias:[new Date(_agData)]};
+  const inicio=agInicioSemana(_agData);
+  const dias=Array.from({length:6},(_,i)=>agAdicionarDias(inicio,i));
+  return {inicio,fim:dias[dias.length-1],dias};
 }
-async function carregarAgenda(){
-  const list = document.getElementById('ag-list');
-  list.innerHTML = '<div class="empty-state">Carregando...</div>';
-  try {
-    const ds = agDs(_agData);
-    const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
-    _agsAtuais = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
-    await Promise.all(_agsAtuais.map(a => setDoc(doc(db,'agenda_publica',a.id), {
-      data:a.data, hora:a.hora, duracao:Number(a.duracao||30), profissionalId:a.profissionalId||'maykon-castro', status:a.status||'confirmado'
-    }, {merge:true}).catch(()=>null)));
-    if (!_agsAtuais.length) { list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>'; return; }
-    list.innerHTML = _agsAtuais.map(a => `
-      <div class="agenda-item">
-        <div class="ag-hora">${a.hora}</div>
-        <div>
-          <div class="ag-nome">${a.nome}</div>
-          <div class="ag-serv">${a.servicoNome||''} · ${a.profissionalNome||'Maykon Castro'} · ${a.tel||''}${a.formaPagamento?' · '+a.formaPagamento:''}</div>
-        </div>
-        <div class="ag-status ${a.status}">${a.status}</div>
-        <div class="ag-actions">
-          ${a.status!=='concluido'?`<button title="Concluir" onclick="abrirModalConcluir('${a.id}')">✓</button>`:''}
-          ${a.status!=='cancelado'?`<button title="Cancelar" onclick="agSetStatus('${a.id}','cancelado')">✕</button>`:''}
-          <button title="Excluir" onclick="agExcluir('${a.id}')">🗑</button>
-        </div>
-      </div>`).join('');
-  } catch(e) {
-    list.innerHTML = '<div class="empty-state">Erro ao carregar agenda.</div>';
+function agRenderPeriodoLabel(periodo){
+  const el=document.getElementById('ag-period-label');
+  const picker=document.getElementById('ag-date-picker');
+  if(picker)picker.value=agDs(_agData);
+  if(_agVisualizacao==='day'){
+    el.textContent=_agData.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  }else{
+    const ini=periodo.inicio; const fim=periodo.fim;
+    const mesmoMes=ini.getMonth()===fim.getMonth();
+    el.textContent=mesmoMes
+      ? `${String(ini.getDate()).padStart(2,'0')} a ${String(fim.getDate()).padStart(2,'0')} de ${ini.toLocaleDateString('pt-BR',{month:'long'})}`
+      : `${ini.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})} a ${fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}`;
   }
 }
-window.agSetStatus = async (id, status) => {
-  try {
-    await updateDoc(doc(db,'agendamentos',id), { status });
-    await setDoc(doc(db,'agenda_publica',id), { status }, {merge:true});
-    toast('Status atualizado.'); carregarAgenda();
-  } catch(e){ toast('Erro ao atualizar.','error'); }
+async function agBuscarPeriodo(dias){
+  const resultados=await Promise.all(dias.map(async dia=>{
+    const ds=agDs(dia);
+    const snap=await getDocsComRetry(query(collection(db,'agendamentos'),where('data','==',ds)));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }));
+  return resultados.flat().sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.hora||'').localeCompare(b.hora||''));
+}
+function agLimites(periodo){
+  let inicio=24*60, fim=0;
+  periodo.dias.forEach(d=>{
+    const cfg=_agHorarioConfig[String(d.getDay())]||HORARIOS_PADRAO[String(d.getDay())];
+    if(!cfg?.ativo)return;
+    inicio=Math.min(inicio,agMinutos(cfg.inicio)); fim=Math.max(fim,agMinutos(cfg.fim));
+  });
+  if(inicio===24*60){inicio=7*60;fim=19*60;}
+  return {inicio,fim};
+}
+function agEventoHtml(a,limiteInicio){
+  const inicio=agMinutos(a.hora); const duracao=Math.max(15,Number(a.duracao||30));
+  const top=((inicio-limiteInicio)/30)*CALENDAR_SLOT_HEIGHT;
+  const altura=Math.max(34,(duracao/30)*CALENDAR_SLOT_HEIGHT-4);
+  const status=agStatusNormalizado(a.status);
+  return `<button class="calendar-event status-${status}" style="top:${top}px;height:${altura}px" onclick="abrirDetalhesAgendamento('${a.id}')" title="${agEscape(a.nome)} — ${agEscape(a.servicoNome||'')}">
+    <strong>${agEscape(a.nome||'Cliente')}</strong>
+    <span>${agEscape(a.hora||'')} · ${agEscape(a.servicoNome||'Serviço')}</span>
+    <small>${agEscape(a.profissionalNome||'Maykon Castro')} · ${agStatusLabel(status)}</small>
+  </button>`;
+}
+function agRenderCalendario(periodo){
+  const host=document.getElementById('agenda-calendar');
+  const limites=agLimites(periodo);
+  const altura=((limites.fim-limites.inicio)/30)*CALENDAR_SLOT_HEIGHT;
+  const hoje=agDs(new Date());
+  const labels=[];
+  for(let m=limites.inicio;m<=limites.fim;m+=30){
+    labels.push(`<span class="calendar-time-label" style="top:${((m-limites.inicio)/30)*CALENDAR_SLOT_HEIGHT}px">${agHora(m)}</span>`);
+  }
+  const cabecalhos=periodo.dias.map(d=>`<div class="calendar-day-head ${agDs(d)===hoje?'is-today':''}"><span>${d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')}</span><strong>${d.getDate()}</strong></div>`).join('');
+  const colunas=periodo.dias.map(d=>{
+    const ds=agDs(d); const cfg=_agHorarioConfig[String(d.getDay())]||HORARIOS_PADRAO[String(d.getDay())];
+    const eventos=_agsAtuais.filter(a=>a.data===ds).map(a=>agEventoHtml(a,limites.inicio)).join('');
+    let agora='';
+    const n=new Date();
+    if(ds===agDs(n)){
+      const min=n.getHours()*60+n.getMinutes();
+      if(min>=limites.inicio && min<=limites.fim) agora=`<div class="calendar-now-line" style="top:${((min-limites.inicio)/30)*CALENDAR_SLOT_HEIGHT}px"></div>`;
+    }
+    return `<div class="calendar-day-column ${cfg?.ativo?'':'is-closed'}" style="--calendar-height:${altura}px;--slot-height:${CALENDAR_SLOT_HEIGHT}px">${agora}${eventos}</div>`;
+  }).join('');
+  host.className='calendar-scroll';
+  host.innerHTML=`<div class="calendar-grid ${_agVisualizacao==='day'?'day-mode':''}" style="--calendar-days:${periodo.dias.length};--calendar-height:${altura}px;--slot-height:${CALENDAR_SLOT_HEIGHT}px">
+    <div class="calendar-corner">Horário</div>${cabecalhos}
+    <div class="calendar-time-axis" style="--calendar-height:${altura}px">${labels.join('')}</div>${colunas}
+  </div>`;
+  if(_agVisualizacao==='day') host.scrollLeft=0;
+  else {
+    const selecionado=periodo.dias.findIndex(d=>agDs(d)===agDs(_agData));
+    if(window.innerWidth<=720 && selecionado>0) setTimeout(()=>{host.scrollLeft=Math.max(0,72+selecionado*148-80);},30);
+  }
+}
+function agRenderResumo(){
+  const ativos=_agsAtuais.filter(a=>agStatusNormalizado(a.status)!=='cancelado');
+  const confirmados=ativos.filter(a=>agStatusNormalizado(a.status)==='confirmado').length;
+  const aguardando=ativos.filter(a=>agStatusNormalizado(a.status)==='aguardando').length;
+  const receita=ativos.filter(a=>['confirmado','concluido'].includes(agStatusNormalizado(a.status))).reduce((s,a)=>s+Number(a.preco||0),0);
+  document.getElementById('agenda-summary').innerHTML=`
+    <div class="calendar-summary-card"><span>Agendamentos</span><strong>${ativos.length}</strong></div>
+    <div class="calendar-summary-card"><span>Confirmados</span><strong>${confirmados}</strong></div>
+    <div class="calendar-summary-card"><span>Aguardando</span><strong>${aguardando}</strong></div>
+    <div class="calendar-summary-card"><span>Valor previsto</span><strong>${fmtMoeda(receita)}</strong></div>`;
+}
+async function carregarAgenda(){
+  const host=document.getElementById('agenda-calendar');
+  if(!host)return;
+  host.className='calendar-loading'; host.textContent='Carregando calendário...';
+  try{
+    await agCarregarConfiguracao();
+    const periodo=agPeriodo(); agRenderPeriodoLabel(periodo);
+    _agsAtuais=await agBuscarPeriodo(periodo.dias);
+    await Promise.all(_agsAtuais.map(a=>setDoc(doc(db,'agenda_publica',a.id),{
+      data:a.data,hora:a.hora,duracao:Number(a.duracao||30),profissionalId:a.profissionalId||'maykon-castro',status:agStatusNormalizado(a.status)
+    },{merge:true}).catch(()=>null)));
+    agRenderCalendario(periodo); agRenderResumo();
+  }catch(e){
+    console.error(e); host.className='calendar-empty'; host.innerHTML='Não foi possível carregar o calendário.<br><button class="btn btn-gold btn-sm" style="margin-top:12px" onclick="carregarAgenda()">Tentar novamente</button>';
+  }
+}
+window.carregarAgenda=carregarAgenda;
+window.abrirDetalhesAgendamento=(id)=>{
+  const a=_agsAtuais.find(x=>x.id===id)||_whatsappRegistros.find(x=>x.id===id); if(!a)return;
+  _agDetalheId=id;
+  const itens=[
+    ['Cliente',a.nome||'-'],['WhatsApp',a.tel||'-'],['Serviço',a.servicoNome||'-'],['Profissional',a.profissionalNome||'Maykon Castro'],
+    ['Data',a.data?fmtData(a.data):'-'],['Horário',a.hora||'-'],['Duração',`${Number(a.duracao||30)} minutos`],['Status',agStatusLabel(a.status)]
+  ];
+  document.getElementById('event-detail-grid').innerHTML=itens.map(([l,v])=>`<div class="event-detail-item"><span>${l}</span><strong>${agEscape(v)}</strong></div>`).join('');
+  const wpp=a.whatsappConfirmacaoStatus||'pendente_envio';
+  const resposta=a.whatsappRespostaStatus||'aguardando';
+  document.getElementById('event-whatsapp-preview').innerHTML=`<strong>WhatsApp:</strong> envio ${agEscape(wpp)} · resposta ${agEscape(resposta)}.<br>A confirmação automática será enviada somente ao cliente quando a API oficial estiver ativa.`;
+  abrirModal('modal-agendamento-detalhe');
 };
-window.agExcluir = async (id) => {
-  if (!confirm('Excluir este agendamento?')) return;
-  try {
-    await deleteDoc(doc(db,'agendamentos',id));
-    await deleteDoc(doc(db,'agenda_publica',id)).catch(()=>null);
-    toast('Agendamento excluído.'); carregarAgenda();
-  } catch(e){ toast('Erro ao excluir.','error'); }
+window.agDetalheStatus=async(status)=>{
+  if(!_agDetalheId)return;
+  await agSetStatus(_agDetalheId,status); fecharModal('modal-agendamento-detalhe');
+};
+window.abrirModalConcluirDoDetalhe=()=>{ if(!_agDetalheId)return; fecharModal('modal-agendamento-detalhe'); abrirModalConcluir(_agDetalheId); };
+window.agExcluirDoDetalhe=async()=>{ if(!_agDetalheId)return; const id=_agDetalheId; fecharModal('modal-agendamento-detalhe'); await agExcluir(id); };
+window.agSetStatus=async(id,status)=>{
+  try{
+    const normal=agStatusNormalizado(status);
+    await updateDoc(doc(db,'agendamentos',id),{status:normal,whatsappRespostaStatus:normal==='confirmado'?'confirmado':normal==='cancelado'?'cancelado':normal==='remarcando'?'remarcando':'aguardando'});
+    await setDoc(doc(db,'agenda_publica',id),{status:normal},{merge:true});
+    toast('Status atualizado.'); await carregarAgenda();
+  }catch(e){console.error(e);toast('Erro ao atualizar.','error');}
+};
+window.agExcluir=async(id)=>{
+  if(!confirm('Excluir este agendamento?'))return;
+  try{await deleteDoc(doc(db,'agendamentos',id));await deleteDoc(doc(db,'agenda_publica',id)).catch(()=>null);toast('Agendamento excluído.');await carregarAgenda();}
+  catch(e){toast('Erro ao excluir.','error');}
 };
 
-// ── Concluir com pagamento (lança automático no financeiro) ──
-window.abrirModalConcluir = (id) => {
-  const a = _agsAtuais.find(x=>x.id===id);
-  if (!a) return;
-  const serv = _servicosAdmin.find(s=>s.id===a.servico);
-  document.getElementById('mcl-id').value = id;
-  document.getElementById('mcl-info').textContent = `${a.nome} — ${a.servicoNome||''}`;
-  document.getElementById('mcl-valor').value = serv ? serv.preco : (a.preco || '');
-  document.getElementById('mcl-pagamento').value = 'pix';
-  abrirModal('modal-concluir');
+// ══════════════ WHATSAPP ══════════════
+let _whatsappRegistros=[];
+let _whatsappFiltro='todos';
+function waEstado(a){
+  const envio=String(a.whatsappConfirmacaoStatus||'pendente_envio');
+  const resposta=String(a.whatsappRespostaStatus||'aguardando');
+  if(['falha','erro','nao_entregue'].includes(envio))return 'falha';
+  if(['confirmado','remarcando','cancelado'].includes(resposta))return 'respondido';
+  if(['enviado','entregue','lido'].includes(envio))return 'enviado';
+  return 'aguardando';
+}
+function waLabel(a){
+  const estado=waEstado(a);
+  if(estado==='falha')return 'Não entregue';
+  if(estado==='respondido')return a.whatsappRespostaStatus==='remarcando'?'Remarcando':a.whatsappRespostaStatus==='cancelado'?'Cancelado':'Confirmado';
+  if(estado==='enviado')return 'Enviada';
+  return 'Aguardando envio';
+}
+function waIniciais(nome=''){return nome.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'MC';}
+window.definirFiltroWhatsApp=(filtro,botao)=>{
+  _whatsappFiltro=filtro;
+  document.querySelectorAll('.whatsapp-filter').forEach(b=>b.classList.toggle('active',b===botao));
+  renderWhatsAppAdmin();
 };
-window.confirmarConclusao = async () => {
-  const id = document.getElementById('mcl-id').value;
-  const valor = parseFloat(document.getElementById('mcl-valor').value);
-  const pagamento = document.getElementById('mcl-pagamento').value;
-  if (isNaN(valor)) { toast('Informe o valor cobrado.','error'); return; }
-  const a = _agsAtuais.find(x=>x.id===id);
-  if (!a) { toast('Agendamento não encontrado.','error'); return; }
-  try {
-    await updateDoc(doc(db,'agendamentos',id), { status: 'concluido', formaPagamento: pagamento, valorCobrado: valor });
-    await setDoc(doc(db,'agenda_publica',id), { status:'concluido' }, {merge:true});
-    await addDoc(collection(db,'financeiro'), {
-      tipo: 'receita',
-      data: a.data,
-      valor,
-      categoria: a.servicoNome || 'Serviço',
-      descricao: `${a.nome} - ${pagamento}`,
-      cliente: a.nome || '',
-      servico: a.servicoNome || '',
-      formaPagamento: pagamento,
-      agendamentoId: id,
-      criadoEm: new Date().toISOString()
-    });
-    toast('Atendimento concluído e lançado no financeiro.');
-    fecharModal('modal-concluir');
-    carregarAgenda();
-  } catch(e) { toast('Erro ao concluir.','error'); }
-};
-
+window.filtrarWhatsAppAdmin=()=>renderWhatsAppAdmin();
+async function carregarWhatsAppAdmin(){
+  const list=document.getElementById('whatsapp-list'); if(!list)return;
+  list.innerHTML='<div class="empty-state">Carregando confirmações...</div>';
+  try{
+    const snap=await getDocsComRetry(collection(db,'agendamentos'));
+    const limite=new Date(); limite.setDate(limite.getDate()-10); limite.setHours(0,0,0,0);
+    _whatsappRegistros=snap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>{
+      if(!a.data)return true; const [y,m,dd]=a.data.split('-').map(Number); return new Date(y,m-1,dd)>=limite;
+    }).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b.hora||'').localeCompare(a.hora||''));
+    renderWhatsAppAdmin();
+  }catch(e){console.error(e);list.innerHTML='<div class="empty-state">Não foi possível carregar as confirmações.</div>';}
+}
+window.carregarWhatsAppAdmin=carregarWhatsAppAdmin;
+function renderWhatsAppAdmin(){
+  const list=document.getElementById('whatsapp-list'); if(!list)return;
+  const busca=(document.getElementById('whatsapp-search')?.value||'').trim().toLowerCase();
+  const filtrados=_whatsappRegistros.filter(a=>{
+    const estado=waEstado(a); const bateFiltro=_whatsappFiltro==='todos'||estado===_whatsappFiltro;
+    const bateBusca=!busca||`${a.nome||''} ${a.tel||''} ${a.servicoNome||''}`.toLowerCase().includes(busca);
+    return bateFiltro&&bateBusca;
+  });
+  const totais={todos:_whatsappRegistros.length,respondido:0,aguardando:0,falha:0};
+  _whatsappRegistros.forEach(a=>{const e=waEstado(a);if(e==='respondido')totais.respondido++;else if(e==='falha')totais.falha++;else totais.aguardando++;});
+  document.getElementById('whatsapp-stats').innerHTML=`
+    <div class="whatsapp-stat"><span>Últimos 10 dias</span><strong>${totais.todos}</strong></div>
+    <div class="whatsapp-stat"><span>Responderam</span><strong>${totais.respondido}</strong></div>
+    <div class="whatsapp-stat"><span>Aguardando</span><strong>${totais.aguardando}</strong></div>
+    <div class="whatsapp-stat"><span>Falhas</span><strong>${totais.falha}</strong></div>`;
+  if(!filtrados.length){list.innerHTML='<div class="empty-state">Nenhuma confirmação encontrada.</div>';return;}
+  list.innerHTML=filtrados.map(a=>{
+    const estado=waEstado(a); const preview=estado==='respondido'?`Cliente respondeu: ${waLabel(a)}`:estado==='falha'?'A mensagem não foi entregue.':'Confirmação do agendamento aguardando processamento.';
+    return `<button class="whatsapp-row" onclick="abrirDetalhesAgendamento('${a.id}')">
+      <span class="whatsapp-avatar ${estado}">${agEscape(waIniciais(a.nome))}</span>
+      <span class="whatsapp-main"><strong>${agEscape(a.nome||'Cliente')}</strong><span>${agEscape(preview)}</span></span>
+      <span class="whatsapp-meta"><time>${a.data?fmtData(a.data):''} ${agEscape(a.hora||'')}</time><span class="whatsapp-badge ${estado}">${agEscape(waLabel(a))}</span></span>
+    </button>`;
+  }).join('');
+}
 
 // ══════════════ PROFISSIONAIS ══════════════
 let _profissionaisAdmin = [];
 
+let _carregandoProfissionais = null;
+let _profissionaisRequestId = 0;
+
 async function carregarProfissionaisAdmin(){
   const grid = document.getElementById('profissionais-grid');
   if (!grid) return;
-  grid.innerHTML = '<div class="empty-state">Carregando profissionais...</div>';
-  try {
-    const snap = await getDocs(collection(db,'profissionais'));
-    _profissionaisAdmin = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
-    if (!_profissionaisAdmin.length) {
-      grid.innerHTML = `
-        <article class="professional-admin-card default-card">
-          <img src="assets/maykon-castro.webp" alt="Maykon Castro">
+
+  // Evita duas consultas simultâneas quando o login abre o painel e o usuário toca na aba.
+  if (_carregandoProfissionais) return _carregandoProfissionais;
+
+  const requestId = ++_profissionaisRequestId;
+  grid.innerHTML = `
+    <div class="empty-state professionals-loading-state">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <strong>Carregando profissionais...</strong>
+      <small>Conectando ao sistema.</small>
+    </div>`;
+
+  _carregandoProfissionais = (async () => {
+    try {
+      const snap = await getDocsComRetry(collection(db,'profissionais'));
+      if (requestId !== _profissionaisRequestId) return;
+
+      _profissionaisAdmin = snap.docs
+        .map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+
+      if (!_profissionaisAdmin.length) {
+        grid.innerHTML = `
+          <article class="professional-admin-card default-card">
+            <img src="assets/maykon-castro.webp" alt="Maykon Castro">
+            <div class="professional-admin-content">
+              <span class="professional-admin-kicker">Cadastro padrão disponível</span>
+              <h3>Maykon Castro</h3>
+              <p>Cabeleireiro e especialista em cuidados masculinos e femininos</p>
+              <div class="professional-admin-actions">
+                <button class="btn btn-gold btn-sm" onclick="importarMaykonPadrao()">Ativar Maykon no sistema</button>
+              </div>
+            </div>
+          </article>`;
+        return;
+      }
+
+      grid.innerHTML = _profissionaisAdmin.map(p=>`
+        <article class="professional-admin-card">
+          <img src="${p.foto||'assets/maykon-castro.webp'}" alt="${p.nome||'Profissional'}" loading="lazy">
           <div class="professional-admin-content">
-            <span class="professional-admin-kicker">Cadastro padrão disponível</span>
-            <h3>Maykon Castro</h3>
-            <p>Cabeleireiro e especialista em cuidados masculinos e femininos</p>
+            <span class="professional-admin-kicker">${p.ativo ? 'Ativo no agendamento' : 'Oculto do agendamento'}</span>
+            <h3>${p.nome||'Profissional'}</h3>
+            <p>${p.especialidade||'Profissional do studio'}</p>
             <div class="professional-admin-actions">
-              <button class="btn btn-gold btn-sm" onclick="importarMaykonPadrao()">Cadastrar no Firestore</button>
+              <button class="btn btn-gold btn-sm" onclick="editarProfissional('${p.id}')">Editar</button>
+              <button class="btn btn-ghost btn-sm" onclick="excluirProfissional('${p.id}')">Excluir</button>
             </div>
           </div>
-        </article>`;
-      return;
+        </article>`).join('');
+    } catch(e) {
+      console.error('Erro ao carregar profissionais:', e);
+      if (requestId !== _profissionaisRequestId) return;
+      grid.innerHTML = `
+        <div class="empty-state professionals-error-state">
+          <strong>Não foi possível carregar os profissionais.</strong>
+          <span>Abra no Safari/Chrome ou toque em tentar novamente.</span>
+          <button class="btn btn-gold btn-sm" onclick="recarregarProfissionaisAdmin()">Tentar novamente</button>
+        </div>`;
+      toast('Falha de conexão com o Firestore. Tente novamente.','error');
+    } finally {
+      _carregandoProfissionais = null;
     }
-    grid.innerHTML = _profissionaisAdmin.map(p=>`
-      <article class="professional-admin-card">
-        <img src="${p.foto||'assets/maykon-castro.webp'}" alt="${p.nome||'Profissional'}">
-        <div class="professional-admin-content">
-          <span class="professional-admin-kicker">${p.ativo?'Disponível no site':'Oculto no site'}</span>
-          <h3>${p.nome||'-'}</h3>
-          <p>${p.especialidade||'Profissional do MC Bem Estar Studio'}</p>
-          <div class="professional-admin-actions">
-            <span class="badge ${p.ativo?'on':'off'}">${p.ativo?'Ativo':'Inativo'}</span>
-            <button class="btn btn-ghost btn-sm" onclick="editarProfissional('${p.id}')">Editar</button>
-            <button class="btn btn-ghost btn-sm danger-btn" onclick="excluirProfissional('${p.id}')">Excluir</button>
-          </div>
-        </div>
-      </article>`).join('');
-  } catch(e) {
-    console.error(e);
-    grid.innerHTML = '<div class="empty-state">Erro ao carregar profissionais.</div>';
-  }
+  })();
+
+  return _carregandoProfissionais;
 }
+
+window.recarregarProfissionaisAdmin = () => {
+  _carregandoProfissionais = null;
+  carregarProfissionaisAdmin();
+};
 
 window.importarMaykonPadrao = async () => {
   if (_profissionaisAdmin.some(p => (p.nome||'').toLowerCase() === 'maykon castro')) {
@@ -1432,7 +1794,7 @@ let _servicosAdmin = [];
 async function carregarServicosAdmin(){
   const tbody = document.getElementById('serv-tbody');
   try {
-    const snap = await getDocs(collection(db,'servicos'));
+    const snap = await getDocsComRetry(collection(db,'servicos'));
     _servicosAdmin = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
     if (!_servicosAdmin.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray2)">Nenhum serviço cadastrado.</td></tr>'; return; }
     tbody.innerHTML = _servicosAdmin.map(s => `
@@ -1547,7 +1909,7 @@ function atualizarEstadoLinhaHorario(i){
 async function initHorarios(){
   let porDia = JSON.parse(JSON.stringify(HORARIOS_PADRAO));
   try {
-    const snap = await getDoc(doc(db,'config','horarios'));
+    const snap = await comTimeout(getDoc(doc(db,'config','horarios')), 18000, 'Tempo esgotado ao carregar os horários.');
     if (snap.exists() && snap.data().porDia) {
       const salvo = snap.data().porDia;
       Object.keys(HORARIOS_PADRAO).forEach(key => {
@@ -1607,7 +1969,7 @@ async function carregarFinanceiro(){
   const tbody = document.getElementById('fin-tbody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray2)">Carregando...</td></tr>';
   try {
-    const snap = await getDocs(collection(db,'financeiro'));
+    const snap = await getDocsComRetry(collection(db,'financeiro'));
     const mk = mesKey(_finMes);
     _finLancamentos = snap.docs.map(d=>({id:d.id,...d.data()})).filter(f => (f.data||'').startsWith(mk)).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
     if (!_finLancamentos.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray2)">Nenhum lançamento neste mês.</td></tr>'; }
@@ -1667,7 +2029,7 @@ window.dreMudarMes = (dir) => { _dreMes.setMonth(_dreMes.getMonth()+dir); render
 function renderDreMesLbl(){ document.getElementById('dre-mes-lbl').textContent = `${MESES[_dreMes.getMonth()]} ${_dreMes.getFullYear()}`; }
 async function carregarDRE(){
   try {
-    const snap = await getDocs(collection(db,'financeiro'));
+    const snap = await getDocsComRetry(collection(db,'financeiro'));
     const mk = mesKey(_dreMes);
     const lancs = snap.docs.map(d=>d.data()).filter(f => (f.data||'').startsWith(mk));
     const receita = lancs.filter(f=>f.tipo==='receita').reduce((s,f)=>s+Number(f.valor||0),0);
@@ -1766,7 +2128,7 @@ function adicionarRodapeRelatorio(pdf){
 window.gerarPDF = async () => {
   try {
     if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('Biblioteca de PDF indisponível.');
-    const snap = await getDocs(collection(db,'financeiro'));
+    const snap = await getDocsComRetry(collection(db,'financeiro'));
     const mk = mesKey(_relMes);
     const lancs = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(f => (f.data||'').startsWith(mk))
