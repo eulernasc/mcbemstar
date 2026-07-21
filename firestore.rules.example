@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() { return request.auth != null; }
+
+    match /servicos/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /config/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    // Agenda pública: contém somente data, hora, duração e status.
+    match /agenda_publica/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['data','hora','duracao','status'])
+        && request.resource.data.data is string
+        && request.resource.data.hora is string
+        && request.resource.data.duracao is number
+        && request.resource.data.duracao > 0
+        && request.resource.data.status == 'confirmado';
+      allow update, delete: if admin();
+    }
+
+    // Dados pessoais do cliente não ficam disponíveis para leitura pública.
+    match /agendamentos/{id} {
+      allow read, update, delete: if admin();
+      allow create: if request.resource.data.keys().hasOnly([
+          'nome','tel','servico','servicoNome','preco','duracao','data','hora','status','criadoEm'
+        ])
+        && request.resource.data.nome is string
+        && request.resource.data.tel is string
+        && request.resource.data.data is string
+        && request.resource.data.hora is string
+        && request.resource.data.duracao is number
+        && request.resource.data.status == 'confirmado';
+    }
+
+    match /financeiro/{id} {
+      allow read, write: if admin();
+    }
+  }
+}

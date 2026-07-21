@@ -1,455 +1,167 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MC Bem Estar Studio — Agendamento</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --gold:#C9A84C;--gold2:#E2C97E;--gold3:#8a6e2f;
-  --black:#080808;--black2:#111;--black3:#1a1a1a;--black4:#222;
-  --white:#f5f2ee;--gray:#888;--gray2:#555;
-  --border:rgba(201,168,76,.18);--border2:rgba(245,242,238,.06);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--white);font-family:'Josefin Sans',sans-serif;font-weight:300;letter-spacing:.04em;overflow-x:hidden;line-height:1.6;}
-body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5;}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,8,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);}
-.nav-logo{display:flex;align-items:center;gap:12px;}
-.nav-logo-mark{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);letter-spacing:-.02em;}
-.nav-logo-sub{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,242,238,.5);line-height:1.4;}
-.nav-links{display:flex;gap:32px;list-style:none;}
-.nav-links a{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,242,238,.6);text-decoration:none;transition:.2s;}
-.nav-links a:hover{color:var(--gold);}
-.nav-cta{font-size:11px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--black);background:var(--gold);padding:9px 22px;text-decoration:none;transition:.2s;}
-.nav-cta:hover{background:var(--gold2);}
-
-/* HERO */
-.hero{min-height:100vh;display:flex;align-items:center;padding:140px 48px 80px;position:relative;overflow:hidden;}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 65% 50%,rgba(201,168,76,.07),transparent 70%);}
-.hero-photo{position:absolute;right:0;top:0;bottom:0;width:44%;background:linear-gradient(to right,var(--black) 0%,transparent 25%),linear-gradient(to top,var(--black) 0%,transparent 15%),linear-gradient(135deg,#1a1410,#2a1f0e 50%,#1a1410);display:flex;align-items:center;justify-content:center;}
-.hero-photo-ph{opacity:.2;text-align:center;}
-.hero-photo-ph svg{width:70px;height:70px;fill:var(--gold);display:block;margin:0 auto 10px;}
-.hero-photo-ph span{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);}
-.hero-content{position:relative;z-index:2;max-width:540px;}
-.hero-tag{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:22px;display:flex;align-items:center;gap:10px;animation:fadeUp .7s ease both;}
-.hero-tag::before{content:'';display:block;width:36px;height:1px;background:var(--gold);}
-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(50px,5.5vw,82px);font-weight:300;line-height:1.02;letter-spacing:-.02em;margin-bottom:6px;animation:fadeUp .7s .1s ease both;}
-h1 em{font-style:italic;color:var(--gold);}
-.hero-name{font-family:'Cormorant Garamond',serif;font-size:clamp(16px,1.8vw,22px);font-weight:300;color:var(--gray);letter-spacing:.12em;margin-bottom:36px;animation:fadeUp .7s .2s ease both;}
-.hero-desc{font-size:13px;line-height:1.9;color:rgba(245,242,238,.55);max-width:380px;margin-bottom:44px;animation:fadeUp .7s .3s ease both;}
-.hero-btns{display:flex;gap:14px;align-items:center;animation:fadeUp .7s .4s ease both;}
-.btn-gold{background:var(--gold);color:var(--black);font-family:'Josefin Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;padding:15px 32px;text-decoration:none;transition:.2s;display:inline-block;}
-.btn-gold:hover{background:var(--gold2);transform:translateY(-1px);}
-.btn-ghost{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,242,238,.5);text-decoration:none;transition:.2s;}
-.btn-ghost:hover{color:var(--white);}
-.scroll-hint{position:absolute;bottom:36px;left:48px;display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);opacity:.5;}
-.scroll-line{width:1px;height:56px;background:linear-gradient(to bottom,var(--gold),transparent);animation:pulse 2s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-
-/* SERVIÇOS */
-.section{padding:90px 48px;max-width:1200px;margin:0 auto;}
-.sec-tag{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
-.sec-tag::before{content:'';width:26px;height:1px;background:var(--gold);}
-h2{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,3.8vw,52px);font-weight:300;line-height:1.1;letter-spacing:-.02em;margin-bottom:48px;}
-h2 em{font-style:italic;color:var(--gold);}
-.gold-line{width:50px;height:1px;background:linear-gradient(to right,var(--gold),transparent);margin:20px 0 36px;}
-#servicos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
-.serv-card{background:var(--black2);padding:36px 30px;transition:.3s;position:relative;overflow:hidden;cursor:default;}
-.serv-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transform:scaleX(0);transition:.3s;transform-origin:left;}
-.serv-card:hover{background:var(--black3);}
-.serv-card:hover::after{transform:scaleX(1);}
-.serv-icon{font-size:26px;margin-bottom:18px;display:block;}
-.serv-nome{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:8px;}
-.serv-desc{font-size:12px;color:var(--gray);line-height:1.7;margin-bottom:18px;}
-.serv-footer{display:flex;align-items:baseline;justify-content:space-between;}
-.serv-preco{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:300;}
-.serv-dur{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray2);}
-.loading-servicos{padding:40px;text-align:center;color:var(--gray2);font-size:13px;}
-
-/* AGENDAMENTO */
-.booking-wrap{background:var(--black2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.booking-inner{display:grid;grid-template-columns:1fr 1fr;max-width:1200px;margin:0 auto;min-height:580px;}
-.booking-info{padding:72px 56px;background:linear-gradient(135deg,rgba(201,168,76,.06),transparent 60%);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
-.booking-steps{display:flex;flex-direction:column;gap:14px;margin-top:28px;}
-.bstep{display:flex;align-items:center;gap:14px;}
-.bstep-num{width:30px;height:30px;border:1px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);flex-shrink:0;}
-.bstep-txt{font-size:12px;letter-spacing:.06em;color:rgba(245,242,238,.6);}
-.booking-form{padding:56px 48px;display:flex;flex-direction:column;gap:0;}
-.form-group{margin-bottom:20px;}
-.form-lbl{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px;}
-.form-input,.form-select{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(201,168,76,.25);color:var(--white);font-family:'Josefin Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 0;outline:none;transition:.2s;letter-spacing:.04em;}
-.form-input:focus,.form-select:focus{border-color:var(--gold);}
-.form-select option{background:var(--black2);color:var(--white);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-/* Calendário */
-.cal-wrap{margin:4px 0 20px;}
-.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.cal-month-lbl{font-family:'Cormorant Garamond',serif;font-size:15px;letter-spacing:.08em;}
-.cal-nav-btn{background:none;border:1px solid var(--border);color:var(--gold);width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.2s;}
-.cal-nav-btn:hover{background:rgba(201,168,76,.1);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.cal-dn{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray2);text-align:center;padding:4px 0;}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border-radius:2px;transition:.15s;color:rgba(245,242,238,.55);}
-.cal-day:hover{background:rgba(201,168,76,.12);color:var(--white);}
-.cal-day.today{color:var(--gold);}
-.cal-day.selected{background:var(--gold);color:var(--black);}
-.cal-day.disabled{opacity:.2;cursor:not-allowed;pointer-events:none;}
-/* Horários */
-.slots-wrap{margin-bottom:20px;}
-.slots-lbl{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:block;}
-.slots-grid{display:flex;flex-wrap:wrap;gap:7px;}
-.slot{font-size:11px;letter-spacing:.08em;padding:6px 13px;border:1px solid rgba(201,168,76,.25);cursor:pointer;transition:.15s;color:rgba(245,242,238,.7);}
-.slot:hover{border-color:var(--gold);color:var(--white);}
-.slot.selected{background:var(--gold);color:var(--black);border-color:var(--gold);}
-.slot.occupied{opacity:.2;cursor:not-allowed;pointer-events:none;text-decoration:line-through;}
-.slots-empty{font-size:12px;color:var(--gray2);}
-/* Toast */
-.toast{position:fixed;bottom:28px;right:28px;z-index:9998;background:var(--black3);border:1px solid var(--border);border-radius:10px;padding:14px 20px;font-size:13px;transform:translateY(80px);opacity:0;transition:.3s;max-width:320px;}
-.toast.show{transform:translateY(0);opacity:1;}
-.toast.success{border-color:rgba(74,222,128,.3);color:#4ade80;}
-.toast.error{border-color:rgba(239,68,68,.3);color:#ef4444;}
-/* FOOTER */
-footer{border-top:1px solid var(--border);padding:48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;max-width:1200px;margin:0 auto;}
-.footer-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold);}
-.footer-copy{font-size:11px;color:var(--gray2);letter-spacing:.08em;}
-/* MOBILE */
-@media(max-width:768px){
-  nav{padding:14px 20px;}.nav-links{display:none;}
-  .hero{padding:100px 20px 60px;}.hero-photo{display:none;}
-  .section{padding:60px 20px;}
-  .booking-inner{grid-template-columns:1fr;}
-  .booking-info{padding:48px 24px;border-right:none;border-bottom:1px solid var(--border);}
-  .booking-form{padding:36px 24px;}
-  .form-row{grid-template-columns:1fr;}
-  footer{padding:32px 20px;flex-direction:column;}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f3f0">
+  <meta name="description" content="Agendamento online do MC Bem Estar Studio.">
+  <title>MC Bem Estar Studio | Agendamento</title>
+  <link rel="icon" href="assets/logo-mc-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/site.css?v=20260721-1">
 </head>
 <body>
-
-<nav>
-  <div class="nav-logo">
-    <div class="nav-logo-mark">MC</div>
-    <div class="nav-logo-sub">Bem Estar<br>Studio</div>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#servicos">Serviços</a></li>
-    <li><a href="#agendamento">Agendamento</a></li>
-  </ul>
-  <a href="#agendamento" class="nav-cta">Agendar</a>
-</nav>
-
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-photo">
-    <div class="hero-photo-ph" style="opacity:.9">
-      <svg viewBox="0 0 420 420" style="width:220px;height:220px;fill:none;margin:0 auto">
-        <text x="210" y="195" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="200" font-size="170" fill="none" stroke="#C9A84C" stroke-width="2" letter-spacing="-30">MC</text>
-        <line x1="105" y1="235" x2="315" y2="235" stroke="#C9A84C" stroke-width="1" opacity="0.85"/>
-        <text x="210" y="280" text-anchor="middle" font-family="Cormorant Garamond, serif" font-style="italic" font-weight="300" font-size="34" fill="#f5f2ee" letter-spacing="1">Bem estar studio</text>
-      </svg>
-    </div>
-  </div>
-  <div class="hero-content">
-    <div class="hero-tag">Bem Estar Studio</div>
-    <h1>Arte<br><em>&amp; Estilo</em><br>Precisos</h1>
-    <div class="gold-line"></div>
-    <p class="hero-name">Maykon Castro</p>
-    <p class="hero-desc">Cada corte pensado para realçar sua personalidade. Experiência premium onde o detalhe faz toda a diferença.</p>
-    <div class="hero-btns">
-      <a href="#agendamento" class="btn-gold">Agendar Horário</a>
-      <a href="#servicos" class="btn-ghost">Ver serviços →</a>
-    </div>
-  </div>
-  <div class="scroll-hint"><div class="scroll-line"></div><span>scroll</span></div>
-</section>
-
-<!-- SERVIÇOS -->
-<section class="section" id="servicos">
-  <div class="sec-tag">O que oferecemos</div>
-  <h2>Nossos<br><em>Serviços</em></h2>
-  <div id="servicos-grid">
-    <div class="loading-servicos">Carregando serviços...</div>
-  </div>
-</section>
-
-<!-- AGENDAMENTO -->
-<section class="booking-wrap" id="agendamento">
-  <div class="booking-inner">
-    <div class="booking-info">
-      <div class="sec-tag">Reserva online</div>
-      <h2 style="margin-bottom:16px">Agende<br>seu <em>Horário</em></h2>
-      <div class="gold-line" style="margin:0 0 20px"></div>
-      <p style="font-size:13px;color:var(--gray);line-height:1.9;max-width:340px">Escolha o serviço, o dia e o horário. Você receberá uma confirmação via WhatsApp.</p>
-      <div class="booking-steps">
-        <div class="bstep"><div class="bstep-num">1</div><span class="bstep-txt">Escolha o serviço</span></div>
-        <div class="bstep"><div class="bstep-num">2</div><span class="bstep-txt">Selecione data e horário disponível</span></div>
-        <div class="bstep"><div class="bstep-num">3</div><span class="bstep-txt">Confirme e aguarde o WhatsApp</span></div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="MC Bem Estar Studio">
+        <img class="brand-mark" src="assets/logo-mc-mark.png" alt="Logo MC">
+        <span class="brand-copy">
+          <strong>Bem Estar Studio</strong>
+          <span>Maykon Castro</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <a class="header-link" href="#servicos">Serviços</a>
+        <a class="btn btn-primary" href="#servicos">Agendar</a>
       </div>
     </div>
-    <div class="booking-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-lbl">Nome</label>
-          <input type="text" class="form-input" id="f-nome" placeholder="Seu nome completo">
-        </div>
-        <div class="form-group">
-          <label class="form-lbl">WhatsApp</label>
-          <input type="text" class="form-input" id="f-tel" placeholder="(35) 9 0000-0000">
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <div class="eyebrow">MC Bem Estar Studio</div>
+          <h1>Seu estilo,<br><em>seu momento.</em></h1>
+          <p>Cuidado masculino e feminino em um ambiente moderno, leve e acolhedor. Escolha o serviço e reserve seu horário em poucos passos.</p>
+          <div class="hero-actions">
+            <a href="#servicos" class="btn btn-primary">Escolher serviço</a>
+            <a href="#studio" class="btn btn-secondary">Conhecer o studio</a>
+          </div>
+          <div class="hero-pills" aria-label="Diferenciais">
+            <span class="hero-pill">Agendamento rápido</span>
+            <span class="hero-pill">Horários em tempo real</span>
+            <span class="hero-pill">Confirmação pelo WhatsApp</span>
+          </div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-lbl">Serviço</label>
-        <select class="form-select" id="f-servico">
-          <option value="">Selecione o serviço...</option>
-        </select>
-      </div>
-      <!-- Calendário -->
-      <div class="cal-wrap">
-        <div class="cal-head">
-          <button class="cal-nav-btn" onclick="calMes(-1)">‹</button>
-          <span class="cal-month-lbl" id="cal-lbl"></span>
-          <button class="cal-nav-btn" onclick="calMes(1)">›</button>
+    </section>
+
+    <section class="section" id="servicos">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Agende seu horário</div>
+            <h2>Escolha um serviço</h2>
+          </div>
+          <p>Veja valor e duração antes de reservar. Os horários disponíveis são calculados conforme o tempo de cada serviço.</p>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
+
+        <div class="service-tools">
+          <label class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input id="service-search" type="search" placeholder="Pesquisar serviço..." autocomplete="off">
+          </label>
+        </div>
+
+        <div class="services-list" id="services-list">
+          <div class="service-empty">Carregando serviços...</div>
+        </div>
       </div>
-      <!-- Horários -->
-      <div class="slots-wrap" id="slots-wrap" style="display:none">
-        <span class="slots-lbl" id="slots-lbl">Horários disponíveis</span>
-        <div class="slots-grid" id="slots-grid"></div>
+    </section>
+
+    <section class="section studio-section" id="studio">
+      <div class="container studio-grid">
+        <div class="studio-photo">
+          <img src="assets/studio-wall.webp" alt="Parede do MC Bem Estar Studio" loading="lazy">
+        </div>
+        <div class="studio-copy">
+          <div class="eyebrow">Bem-estar de verdade</div>
+          <h2>Um espaço com a sua identidade</h2>
+          <p>O MC Bem Estar Studio une técnica, cuidado e atenção aos detalhes. Cada atendimento é planejado para entregar conforto, praticidade e um resultado que combine com você.</p>
+          <div class="studio-features">
+            <div class="feature"><strong>Atendimento personalizado</strong><span>Serviços pensados para cada estilo.</span></div>
+            <div class="feature"><strong>Agenda organizada</strong><span>Escolha somente horários realmente disponíveis.</span></div>
+            <div class="feature"><strong>Masculino e feminino</strong><span>Um catálogo completo de cuidados.</span></div>
+            <div class="feature"><strong>Confirmação fácil</strong><span>Finalize sua reserva pelo WhatsApp.</span></div>
+          </div>
+        </div>
       </div>
-      <button class="btn-gold" style="width:100%;border:none;cursor:pointer;margin-top:8px;font-size:11px;text-align:center" onclick="confirmarAgendamento()">Confirmar Agendamento</button>
-      <p style="margin-top:10px;font-size:10px;color:var(--gray2);letter-spacing:.1em">Domingos fechado · Horários sujeitos a disponibilidade</p>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card">
+          <div>
+            <h2>Pronto para renovar o visual?</h2>
+            <p>Escolha seu serviço e encontre o melhor horário.</p>
+          </div>
+          <a class="btn btn-primary" href="#servicos">Agendar agora</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo-mc.png" alt="MC Bem Estar Studio">
+        <div class="footer-copy">© 2026 MC Bem Estar Studio<br>Todos os direitos reservados.</div>
+      </div>
+      <a class="admin-link" href="admin.html">Área administrativa</a>
     </div>
-  </div>
-</section>
+  </footer>
 
-<footer>
-  <div>
-    <div class="footer-logo">MC · Bem Estar Studio</div>
-    <div style="font-size:11px;color:var(--gray2);margin-top:4px;letter-spacing:.1em">Maykon Castro</div>
-  </div>
-  <div class="footer-copy">© 2026 MC Bem Estar Studio</div>
-</footer>
-
-<div class="toast" id="toast"></div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCjCjnFd4P62wLcy8UzRSfjX5leb1Vi0wQ",
-  authDomain: "mc-bemestar.firebaseapp.com",
-  projectId: "mc-bemestar",
-  storageBucket: "mc-bemestar.firebasestorage.app",
-  messagingSenderId: "387718746394",
-  appId: "1:387718746394:web:ae6a95be189ab6a6c49ca3"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-
-// ── Estado ──
-let _servicos  = [];
-let _horarios  = null; // config de horários
-let _calDate   = new Date();
-let _diaSel    = null;
-let _horaSel   = null;
-const WPP      = '5535997490869';
-const MESES    = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DIAS_S   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-
-// ── Toast ──
-function toast(msg, tipo='success') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast ' + tipo + ' show';
-  setTimeout(() => el.classList.remove('show'), 3500);
-}
-
-// ── Carregar serviços ──
-async function carregarServicos() {
-  try {
-    const snap = await getDocs(query(collection(db,'servicos'), where('ativo','==',true)));
-    _servicos = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => (a.ordem||0)-(b.ordem||0));
-    renderServicos();
-    renderSelectServicos();
-  } catch(e) {
-    document.getElementById('servicos-grid').innerHTML = '<div class="loading-servicos">Erro ao carregar serviços.</div>';
-  }
-}
-
-function renderServicos() {
-  const icons = ['✂️','🪒','💈','🌿','💆','🧴'];
-  const grid = document.getElementById('servicos-grid');
-  if (!_servicos.length) { grid.innerHTML = '<div class="loading-servicos">Nenhum serviço cadastrado.</div>'; return; }
-  grid.innerHTML = _servicos.map((s,i) => `
-    <div class="serv-card">
-      <span class="serv-icon">${icons[i%icons.length]}</span>
-      <div class="serv-nome">${s.nome}</div>
-      <div class="serv-desc">${s.descricao||''}</div>
-      <div class="serv-footer">
-        <div class="serv-preco">R$ ${Number(s.preco).toFixed(2).replace('.',',')}</div>
-        <div class="serv-dur">${s.duracao||30} min</div>
+  <div class="modal-backdrop" id="booking-backdrop" aria-hidden="true">
+    <section class="booking-modal" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+      <div class="modal-head">
+        <h3 id="booking-title">Agendar horário</h3>
+        <button class="close-btn" id="booking-close" aria-label="Fechar">×</button>
       </div>
-    </div>`).join('');
-}
+      <div class="modal-body">
+        <div class="selected-service" id="selected-service"></div>
 
-function renderSelectServicos() {
-  const sel = document.getElementById('f-servico');
-  sel.innerHTML = '<option value="">Selecione o serviço...</option>' +
-    _servicos.map(s => `<option value="${s.id}" data-dur="${s.duracao||30}">${s.nome} — R$ ${Number(s.preco).toFixed(2).replace('.',',')}</option>`).join('');
-}
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="booking-name">Seu nome</label>
+            <input class="form-control" id="booking-name" type="text" placeholder="Nome completo" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="booking-phone">WhatsApp</label>
+            <input class="form-control" id="booking-phone" type="tel" placeholder="(35) 9 9999-9999" autocomplete="tel">
+          </div>
+        </div>
 
-// ── Carregar config de horários ──
-async function carregarHorarios() {
-  try {
-    const docSnap = await getDoc(doc(db,'config','horarios'));
-    if (docSnap.exists()) _horarios = docSnap.data();
-    else _horarios = {
-      diasAtivos: [1,2,3,4,5,6], // seg-sab
-      inicio: '09:00',
-      fim: '18:00',
-      intervalo: 30 // minutos
-    };
-  } catch(e) {
-    _horarios = { diasAtivos:[1,2,3,4,5,6], inicio:'09:00', fim:'18:00', intervalo:30 };
-  }
-}
+        <div class="booking-block">
+          <div class="block-title"><strong>1. Escolha o dia</strong><span id="selected-date-label"></span></div>
+          <div class="calendar">
+            <div class="calendar-head">
+              <button id="calendar-prev" aria-label="Mês anterior">‹</button>
+              <span class="calendar-title" id="calendar-title"></span>
+              <button id="calendar-next" aria-label="Próximo mês">›</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </div>
+        </div>
 
-// ── Calendário ──
-function calMes(dir) {
-  _calDate = new Date(_calDate.getFullYear(), _calDate.getMonth() + dir, 1);
-  renderCal();
-}
-window.calMes = calMes;
+        <div class="booking-block">
+          <div class="block-title"><strong>2. Escolha o horário</strong><span id="slot-help">Selecione uma data</span></div>
+          <div class="slots" id="slots-grid">
+            <div class="slots-empty">Selecione um dia para ver os horários.</div>
+          </div>
+        </div>
+        <div class="booking-status" id="booking-status"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-quiet" id="booking-cancel">Cancelar</button>
+        <button class="btn btn-primary" id="booking-confirm">Confirmar agendamento</button>
+      </div>
+    </section>
+  </div>
 
-function renderCal() {
-  const ano = _calDate.getFullYear(), mes = _calDate.getMonth();
-  document.getElementById('cal-lbl').textContent = MESES[mes] + ' ' + ano;
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
-  DIAS_S.forEach(d => { const el = document.createElement('div'); el.className='cal-dn'; el.textContent=d; grid.appendChild(el); });
-  const primeiro = new Date(ano, mes, 1).getDay();
-  const total = new Date(ano, mes+1, 0).getDate();
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  for (let i=0;i<primeiro;i++) { const el=document.createElement('div'); el.className='cal-day disabled'; grid.appendChild(el); }
-  for (let d=1;d<=total;d++) {
-    const el = document.createElement('div'); el.className='cal-day'; el.textContent=d;
-    const data = new Date(ano, mes, d); data.setHours(0,0,0,0);
-    const diasAtivos = _horarios?.diasAtivos || [1,2,3,4,5,6];
-    if (data < hoje || !diasAtivos.includes(data.getDay())) { el.classList.add('disabled'); }
-    else {
-      if (data.toDateString()===hoje.toDateString()) el.classList.add('today');
-      const ds = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if (_diaSel===ds) el.classList.add('selected');
-      el.addEventListener('click', () => selecionarDia(ds, d, mes, ano, el));
-    }
-    grid.appendChild(el);
-  }
-}
-
-async function selecionarDia(ds, d, mes, ano, el) {
-  document.querySelectorAll('.cal-day.selected').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  _diaSel = ds; _horaSel = null;
-  await carregarSlots(ds, d, mes);
-}
-
-async function carregarSlots(ds, d, mes) {
-  const wrap = document.getElementById('slots-wrap');
-  const grid = document.getElementById('slots-grid');
-  const lbl  = document.getElementById('slots-lbl');
-  lbl.textContent = `Horários — ${d} de ${MESES[mes]}`;
-  grid.innerHTML = '<span class="slots-empty">Carregando...</span>';
-  wrap.style.display = '';
-
-  try {
-    // Buscar agendamentos do dia (filtro de status feito no navegador, evita índice composto)
-    const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
-    const ocupados = new Set(snap.docs.map(d => d.data()).filter(a => a.status !== 'cancelado').map(a => a.hora));
-
-    // Gerar slots
-    const slots = gerarSlots();
-    if (!slots.length) { grid.innerHTML='<span class="slots-empty">Sem horários disponíveis.</span>'; return; }
-    grid.innerHTML = slots.map(h => `<div class="slot${ocupados.has(h)?' occupied':''}" onclick="selecionarHora(this,'${h}')">${h}</div>`).join('');
-  } catch(e) {
-    grid.innerHTML = '<span class="slots-empty">Erro ao carregar horários. Tente novamente.</span>';
-  }
-}
-
-function gerarSlots() {
-  if (!_horarios) return [];
-  const [hi,mi] = (_horarios.inicio||'09:00').split(':').map(Number);
-  const [hf,mf] = (_horarios.fim||'18:00').split(':').map(Number);
-  const interval = _horarios.intervalo || 30;
-  const slots = [];
-  let cur = hi*60+mi;
-  const end = hf*60+mf;
-  while (cur < end) {
-    const h = String(Math.floor(cur/60)).padStart(2,'0');
-    const m = String(cur%60).padStart(2,'0');
-    slots.push(`${h}:${m}`);
-    cur += interval;
-  }
-  return slots;
-}
-
-function selecionarHora(el, hora) {
-  document.querySelectorAll('.slot.selected').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected'); _horaSel = hora;
-}
-window.selecionarHora = selecionarHora;
-
-// ── Confirmar agendamento ──
-async function confirmarAgendamento() {
-  const nome  = document.getElementById('f-nome').value.trim();
-  const tel   = document.getElementById('f-tel').value.trim().replace(/\D/g,'');
-  const servId= document.getElementById('f-servico').value;
-  const servEl= document.getElementById('f-servico');
-  const servNome = servEl.options[servEl.selectedIndex]?.text || '';
-  if (!nome||!tel||!servId||!_diaSel||!_horaSel) { toast('Preencha todos os campos e selecione data e horário.','error'); return; }
-
-  try {
-    await addDoc(collection(db,'agendamentos'), {
-      nome, tel, servico: servId, servicoNome: servNome,
-      data: _diaSel, hora: _horaSel,
-      status: 'confirmado',
-      criadoEm: new Date().toISOString()
-    });
-    toast('✅ Agendamento confirmado! Você receberá uma confirmação no WhatsApp.','success');
-
-    // Abrir WhatsApp com confirmação
-    const [ano,mes,dia] = _diaSel.split('-');
-    const msg = encodeURIComponent(`Olá! Meu agendamento foi confirmado:\n\n📋 *${servNome}*\n📅 ${dia}/${mes}/${ano} às ${_horaSel}\n\nNome: ${nome}\n\nObrigado, MC Bem Estar Studio! ✂️`);
-    setTimeout(() => window.open(`https://wa.me/${WPP}?text=${msg}`,'_blank'), 1000);
-
-    // Reset
-    document.getElementById('f-nome').value='';
-    document.getElementById('f-tel').value='';
-    document.getElementById('f-servico').value='';
-    _diaSel=null; _horaSel=null;
-    renderCal();
-    document.getElementById('slots-wrap').style.display='none';
-  } catch(e) {
-    toast('Erro ao salvar agendamento. Tente novamente.','error');
-  }
-}
-window.confirmarAgendamento = confirmarAgendamento;
-
-// ── Init ──
-(async () => {
-  await Promise.all([carregarServicos(), carregarHorarios()]);
-  renderCal();
-})();
-</script>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="js/app.js?v=20260721-1"></script>
 </body>
 </html>

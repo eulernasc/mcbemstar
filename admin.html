@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MC Bem Estar Studio — Painel Admin</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<title>MC Bem Estar Studio | Painel Administrativo</title>
+<link rel="icon" href="assets/logo-mc-mark.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
@@ -16,7 +16,7 @@
   --green:#4ade80;--red:#ef4444;--red2:rgba(239,68,68,.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--black);color:var(--white);font-family:'Josefin Sans',sans-serif;font-weight:300;letter-spacing:.02em;line-height:1.6;min-height:100vh;}
+body{background:var(--black);color:var(--white);font-family:'Manrope',sans-serif;font-weight:300;letter-spacing:.02em;line-height:1.6;min-height:100vh;}
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5;}
 h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:400;}
 button{font-family:inherit;cursor:pointer;}
@@ -155,6 +155,49 @@ tr:last-child td{border-bottom:none;}
 .mob-topbar{display:none;position:fixed;top:0;left:0;right:0;height:58px;background:var(--black2);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;padding:0 18px;z-index:60;}
 .mob-topbar .sb-logo-mark{font-size:19px;}
 .mob-burger{background:none;border:none;color:var(--gold);font-size:22px;}
+
+/* Identidade clara MC Bem Estar */
+:root{
+  --gold:#b38a2f;--gold2:#cfad60;--gold3:#8a671f;
+  --black:#f4f3f0;--black2:#ffffff;--black3:#f1efe9;--black4:#e5e1d8;
+  --white:#1d1d1b;--gray:#716e67;--gray2:#9c978d;
+  --border:rgba(179,138,47,.28);--border2:rgba(29,29,27,.08);
+  --green:#287c50;--red:#b13d3d;--red2:rgba(177,61,61,.10);
+}
+body{font-family:'Manrope',sans-serif;background:var(--black);color:var(--white);}
+body::after{opacity:.12;}
+h1,h2,h3,.date-lbl,.ag-hora,.kpi-val{font-family:'Cormorant Garamond',serif;}
+#login-screen{background:linear-gradient(rgba(244,243,240,.88),rgba(244,243,240,.97)),url('assets/studio-wall.webp') center/cover no-repeat;}
+.login-box{background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:24px;padding:34px;box-shadow:0 24px 80px rgba(40,35,24,.16);}
+.login-logo{width:180px;height:120px;object-fit:contain;margin:0 auto 10px;mix-blend-mode:multiply;}
+.login-input{text-align:left;letter-spacing:0;background:#f8f7f4;border:1px solid var(--border2);border-radius:12px;padding:13px 14px;color:var(--white);margin-bottom:14px;}
+.login-input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(179,138,47,.1);}
+.login-btn,.btn-gold{border-radius:11px;color:#fff;background:linear-gradient(135deg,#c49b42,#936c21);}
+.sidebar{background:#fff;box-shadow:8px 0 30px rgba(44,39,29,.06);}
+.sb-logo{padding-top:0;}
+.sb-logo-img{width:145px;height:95px;object-fit:contain;mix-blend-mode:multiply;}
+.sb-logo-sub{color:var(--gold3);font-weight:700;}
+.sb-item{color:#706d66;border-radius:10px;border-left:0;margin-bottom:3px;}
+.sb-item:hover{color:var(--white);background:#f5f3ee;}
+.sb-item.active{color:var(--gold3);background:#f4ecda;border-left:0;font-weight:700;}
+.sb-logout{display:block;text-decoration:none;color:#88837a;margin-bottom:10px;}
+.sb-site-link:hover{color:var(--gold3);}
+.main{max-width:1400px;}
+.card,.agenda-item,.kpi{border-radius:16px;box-shadow:0 8px 24px rgba(41,36,25,.04);}
+.kpi-grid{background:transparent;border:0;gap:12px;}
+.card{background:#fff;}
+.agenda-item{background:#fff;}
+.form-input,.form-select,textarea.form-input{background:#faf9f6;color:var(--white);border-radius:10px;}
+.form-select option{background:#fff;color:#1d1d1b;}
+.modal-bg{background:rgba(25,23,18,.52);backdrop-filter:blur(5px);}
+.modal{background:#fff;border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.2);}
+.btn-ghost{color:var(--white);background:#fff;border-color:var(--border);border-radius:10px;}
+table{background:#fff;}
+th{background:#f8f6f1;}
+.toast{background:#1d1d1b;color:#fff;border-radius:12px;}
+.mob-topbar{background:#fff;}
+@media(max-width:900px){.main{padding:80px 14px 50px}.login-box{padding:26px 20px}.agenda-item{grid-template-columns:64px 1fr;}.ag-status,.ag-actions{grid-column:2}.sidebar{box-shadow:20px 0 50px rgba(0,0,0,.14)}}
+
 </style>
 </head>
 <body>
@@ -162,7 +205,7 @@ tr:last-child td{border-bottom:none;}
 <!-- ═══ LOGIN ═══ -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-mark">MC</div>
+    <img src="assets/logo-mc.png" alt="MC Bem Estar Studio" class="login-logo">
     <div class="login-sub">Painel Administrativo</div>
     <input type="email" id="login-email" class="login-input" placeholder="E-mail" autocomplete="off">
     <div style="position:relative">
@@ -178,14 +221,14 @@ tr:last-child td{border-bottom:none;}
 <!-- ═══ APP ═══ -->
 <div id="app-shell">
   <div class="mob-topbar">
-    <div class="sb-logo-mark">MC · Admin</div>
+    <div class="sb-logo-mark">MC Bem Estar</div>
     <button class="mob-burger" onclick="toggleSidebar()">☰</button>
   </div>
 
   <aside class="sidebar" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-mark">MC</div>
-      <div class="sb-logo-sub">Painel Admin</div>
+      <img src="assets/logo-mc.png" alt="MC Bem Estar Studio" class="sb-logo-img">
+      <div class="sb-logo-sub">Painel Administrativo</div>
     </div>
     <nav class="sb-nav">
       <div class="sb-item active" data-page="agenda" onclick="showPage('agenda',this)"><span class="ic">📅</span>Agenda</div>
@@ -196,6 +239,7 @@ tr:last-child td{border-bottom:none;}
       <div class="sb-item" data-page="relatorio" onclick="showPage('relatorio',this)"><span class="ic">📄</span>Relatório</div>
     </nav>
     <div class="sb-foot">
+      <a href="index.html" class="sb-logout sb-site-link">Abrir site ↗</a>
       <div class="sb-logout" style="margin-bottom:10px" onclick="abrirModalSenha()">Trocar senha</div>
       <div class="sb-logout" onclick="logout()">Sair ↦</div>
     </div>
@@ -205,7 +249,7 @@ tr:last-child td{border-bottom:none;}
 
     <!-- AGENDA -->
     <div class="page active" id="page-agenda">
-      <div class="page-tag">Hoje na barbearia</div>
+      <div class="page-tag">Agenda do studio</div>
       <h1 class="page-title">Agenda do <em>Dia</em></h1>
       <p class="page-sub">Acompanhe e gerencie os agendamentos do dia selecionado.</p>
 
@@ -227,7 +271,7 @@ tr:last-child td{border-bottom:none;}
           <h1 class="page-title">Gestão de <em>Serviços</em></h1>
           <p class="page-sub">Cadastre e edite os serviços oferecidos.</p>
         </div>
-        <button class="btn btn-gold" onclick="abrirModalServico()">+ Novo Serviço</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="importarServicosPadrao()">Importar catálogo</button><button class="btn btn-gold" onclick="abrirModalServico()">+ Novo Serviço</button></div>
       </div>
       <div class="card" style="padding:0;overflow-x:auto">
         <table>
@@ -260,13 +304,11 @@ tr:last-child td{border-bottom:none;}
           </div>
         </div>
         <div class="form-group">
-          <label class="form-lbl">Intervalo entre horários (minutos)</label>
+          <label class="form-lbl">Grade dos horários disponíveis</label>
           <select class="form-select" id="hor-intervalo">
-            <option value="15">15 minutos</option>
-            <option value="20">20 minutos</option>
-            <option value="30">30 minutos</option>
-            <option value="45">45 minutos</option>
-            <option value="60">60 minutos</option>
+            <option value="5">A cada 5 minutos</option>
+            <option value="10">A cada 10 minutos</option>
+            <option value="15">A cada 15 minutos</option>
           </select>
         </div>
       </div>
@@ -500,6 +542,18 @@ const auth = getAuth(app);
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const SERVICOS_PADRAO = [
+  ['Barba simples',30,30],['Corte',45,45],['Corte + barba',75,60],
+  ['Corte + barba + design sobrancelha',85,60],['Corte + barba + design sobrancelha pinça',100,75],
+  ['Corte + design sobrancelha',55,60],['Corte + pigmentação cabelo + barba',105,90],
+  ['Corte feminino curto',45,45],['Corte feminino curto + design sobrancelha lâmina',55,60],
+  ['Corte feminino longo',100,75],['Corte feminino longo + sobrancelha lâmina',110,75],
+  ['Corte feminino ombro',80,60],['Corte feminino ombro + design sobrancelha lâmina',90,75],
+  ['Design sobrancelha lâmina',10,15],['Design sobrancelha pinça',25,30],['Hidratação',45,30],
+  ['Limpeza de pele / revitalização',45,45],['Luzes',100,120],['Pezinho barba',20,15],
+  ['Pezinho cabelo + barba completa',45,30],['Platinado',145,150],['Selagem / Botox',100,45]
+].map(([nome,preco,duracao],i)=>({nome,preco,duracao,ordem:i+1,ativo:true,descricao:'',aPartirDe:['Corte + pigmentação cabelo + barba','Platinado'].includes(nome)}));
+
 // ── Utils ──
 function fmtMoeda(v){ return 'R$ ' + Number(v||0).toFixed(2).replace('.',','); }
 function fmtData(ds){ const [a,m,d] = ds.split('-'); return `${d}/${m}/${a}`; }
@@ -608,6 +662,9 @@ async function carregarAgenda(){
     const ds = agDs(_agData);
     const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
     _agsAtuais = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    await Promise.all(_agsAtuais.map(a => setDoc(doc(db,'agenda_publica',a.id), {
+      data:a.data, hora:a.hora, duracao:Number(a.duracao||30), status:a.status||'confirmado'
+    }, {merge:true}).catch(()=>null)));
     if (!_agsAtuais.length) { list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>'; return; }
     list.innerHTML = _agsAtuais.map(a => `
       <div class="agenda-item">
@@ -628,13 +685,19 @@ async function carregarAgenda(){
   }
 }
 window.agSetStatus = async (id, status) => {
-  try { await updateDoc(doc(db,'agendamentos',id), { status }); toast('Status atualizado.'); carregarAgenda(); }
-  catch(e){ toast('Erro ao atualizar.','error'); }
+  try {
+    await updateDoc(doc(db,'agendamentos',id), { status });
+    await setDoc(doc(db,'agenda_publica',id), { status }, {merge:true});
+    toast('Status atualizado.'); carregarAgenda();
+  } catch(e){ toast('Erro ao atualizar.','error'); }
 };
 window.agExcluir = async (id) => {
   if (!confirm('Excluir este agendamento?')) return;
-  try { await deleteDoc(doc(db,'agendamentos',id)); toast('Agendamento excluído.'); carregarAgenda(); }
-  catch(e){ toast('Erro ao excluir.','error'); }
+  try {
+    await deleteDoc(doc(db,'agendamentos',id));
+    await deleteDoc(doc(db,'agenda_publica',id)).catch(()=>null);
+    toast('Agendamento excluído.'); carregarAgenda();
+  } catch(e){ toast('Erro ao excluir.','error'); }
 };
 
 // ── Concluir com pagamento (lança automático no financeiro) ──
@@ -644,7 +707,7 @@ window.abrirModalConcluir = (id) => {
   const serv = _servicosAdmin.find(s=>s.id===a.servico);
   document.getElementById('mcl-id').value = id;
   document.getElementById('mcl-info').textContent = `${a.nome} — ${a.servicoNome||''}`;
-  document.getElementById('mcl-valor').value = serv ? serv.preco : '';
+  document.getElementById('mcl-valor').value = serv ? serv.preco : (a.preco || '');
   document.getElementById('mcl-pagamento').value = 'pix';
   abrirModal('modal-concluir');
 };
@@ -657,6 +720,7 @@ window.confirmarConclusao = async () => {
   if (!a) { toast('Agendamento não encontrado.','error'); return; }
   try {
     await updateDoc(doc(db,'agendamentos',id), { status: 'concluido', formaPagamento: pagamento, valorCobrado: valor });
+    await setDoc(doc(db,'agenda_publica',id), { status:'concluido' }, {merge:true});
     await addDoc(collection(db,'financeiro'), {
       tipo: 'receita',
       data: a.data,
@@ -665,7 +729,7 @@ window.confirmarConclusao = async () => {
       descricao: `${a.nome} — ${pagamento}`,
       criadoEm: new Date().toISOString()
     });
-    toast('Corte concluído e lançado no financeiro.');
+    toast('Atendimento concluído e lançado no financeiro.');
     fecharModal('modal-concluir');
     carregarAgenda();
   } catch(e) { toast('Erro ao concluir.','error'); }
@@ -695,6 +759,17 @@ async function carregarServicosAdmin(){
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red)">Erro ao carregar serviços.</td></tr>';
   }
 }
+
+window.importarServicosPadrao = async () => {
+  if (_servicosAdmin.length && !confirm('Já existem serviços cadastrados. Deseja adicionar o catálogo padrão mesmo assim?')) return;
+  try {
+    for (const servico of SERVICOS_PADRAO) await addDoc(collection(db,'servicos'), servico);
+    toast('Catálogo importado com sucesso.');
+    carregarServicosAdmin();
+  } catch(e) {
+    toast('Erro ao importar catálogo. Verifique as permissões do Firestore.','error');
+  }
+};
 window.abrirModalServico = () => {
   document.getElementById('ms-title').textContent = 'Novo Serviço';
   ['ms-id','ms-nome','ms-desc','ms-preco','ms-duracao','ms-ordem'].forEach(id=>document.getElementById(id).value='');
@@ -747,11 +822,11 @@ async function initHorarios(){
     </label>`).join('');
   try {
     const snap = await getDoc(doc(db,'config','horarios'));
-    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'09:00', fim:'18:00', intervalo:30 };
+    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00', intervalo:5 };
     (h.diasAtivos||[]).forEach(i => { const c=document.getElementById('hd-'+i); if(c) c.checked=true; });
-    document.getElementById('hor-inicio').value = h.inicio||'09:00';
-    document.getElementById('hor-fim').value = h.fim||'18:00';
-    document.getElementById('hor-intervalo').value = String(h.intervalo||30);
+    document.getElementById('hor-inicio').value = h.inicio||'07:00';
+    document.getElementById('hor-fim').value = h.fim||'19:00';
+    document.getElementById('hor-intervalo').value = String(Number(h.intervalo)>15?5:(h.intervalo||5));
   } catch(e) { toast('Erro ao carregar horários.','error'); }
 }
 window.salvarHorarios = async () => {
