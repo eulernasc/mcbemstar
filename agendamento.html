@@ -99,7 +99,7 @@
     $("reschedule-btn").addEventListener("click",openReschedule);
     $("new-date").min=localToday();
     $("new-date").addEventListener("change",loadSlots);
-    $("save-reschedule").addEventListener("click",async()=>{if(!selectedTime)return;const button=$("save-reschedule");button.disabled=true;setStatus("Salvando o novo horário...");try{const date=$("new-date").value;await manage({acao:"remarcar",token,data,hora:selectedTime});showDone("Horário remarcado",`Seu novo atendimento ficou para ${brDate(date)} às ${selectedTime}. A confirmação também foi enviada pelo WhatsApp.`);}catch(error){console.error(error);button.disabled=false;setStatus(error?.message||"Não foi possível remarcar.",true);loadSlots();}});
+    $("save-reschedule").addEventListener("click",async()=>{if(!selectedTime)return;const button=$("save-reschedule");button.disabled=true;setStatus("Salvando o novo horário...");try{const date=$("new-date").value;await manage({acao:"remarcar",token,data:date,hora:selectedTime});showDone("Horário remarcado",`Seu novo atendimento ficou para ${brDate(date)} às ${selectedTime}. A confirmação também foi enviada pelo WhatsApp.`);}catch(error){console.error(error);button.disabled=false;setStatus(error?.message||"Não foi possível remarcar.",true);loadSlots();}});
     load();
   </script>
 </body>
