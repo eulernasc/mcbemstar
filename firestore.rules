@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() { return request.auth != null; }
+
+    match /profissionais/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /servicos/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /config/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    // Espelho público sem nome ou telefone do cliente.
+    match /agenda_publica/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly([
+          'data','hora','duracao','profissionalId','status'
+        ])
+        && request.resource.data.data is string
+        && request.resource.data.hora is string
+        && request.resource.data.duracao is number
+        && request.resource.data.duracao > 0
+        && request.resource.data.profissionalId is string
+        && request.resource.data.status in ['aguardando','confirmado'];
+      allow update, delete: if admin();
+    }
+
+    // Dados pessoais: criação pública limitada e gestão somente pelo painel.
+    // Cloud Functions usa o Admin SDK e não depende destas permissões.
+    match /agendamentos/{id} {
+      allow read, update, delete: if admin();
+      allow create: if request.resource.data.keys().hasOnly([
+          'nome','tel','servico','servicoNome','preco','duracao',
+          'profissionalId','profissionalNome','data','hora','status',
+          'whatsappDestino','whatsappConfirmacaoStatus','whatsappRespostaStatus','criadoEm'
+        ])
+        && request.resource.data.nome is string
+        && request.resource.data.tel is string
+        && request.resource.data.data is string
+        && request.resource.data.hora is string
+        && request.resource.data.duracao is number
+        && request.resource.data.profissionalId is string
+        && request.resource.data.profissionalNome is string
+        && request.resource.data.whatsappDestino is string
+        && request.resource.data.whatsappConfirmacaoStatus in ['pendente_envio','pendente_api']
+        && request.resource.data.whatsappRespostaStatus == 'aguardando'
+        && request.resource.data.status in ['aguardando','confirmado'];
+    }
+
+    match /financeiro/{id} {
+      allow read, write: if admin();
+    }
+  }
+}
