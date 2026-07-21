@@ -402,6 +402,17 @@ button{-webkit-tap-highlight-color:transparent;}
 .professional-modal-preview img{width:76px;height:82px;border-radius:12px;object-fit:cover;object-position:center 20%;}
 .professional-modal-preview strong{display:block;font-size:12px;margin-bottom:4px;}
 .professional-modal-preview span{display:block;font-size:10px;color:var(--gray);line-height:1.5;}
+.professional-photo-picker{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-6px 0 8px;}
+.professional-file-button{cursor:pointer;user-select:none;}
+.professional-file-button svg{width:17px;height:17px;flex:none;}
+.professional-photo-help{font-size:10px;line-height:1.55;color:var(--gray2);margin:0 0 18px;}
+.professional-photo-picker .btn[disabled],#mp-salvar[disabled]{opacity:.55;pointer-events:none;}
+@media(max-width:520px){
+  .professional-photo-picker{display:grid;grid-template-columns:1fr;}
+  .professional-photo-picker .btn{width:100%;justify-content:center;}
+  .professional-modal-preview{grid-template-columns:68px 1fr;}
+  .professional-modal-preview img{width:68px;height:76px;}
+}
 .schedule-note{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#faf8f3;color:var(--gray);line-height:1.65;font-size:12px;}
 @media(max-width:720px){
   .professionals-admin-grid{grid-template-columns:1fr;}
@@ -567,7 +578,7 @@ button{-webkit-tap-highlight-color:transparent;}
       <div class="page-tag">Agenda do studio</div>
       <h1 class="page-title">Agenda do <em>Dia</em></h1>
       <p class="page-sub">Acompanhe e gerencie os agendamentos do dia selecionado.</p>
-      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais, grade de 30 minutos, horários individuais por dia e menu dourado.</div>
+      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais com escolha de foto, grade de 30 minutos, horários individuais por dia e menu dourado.</div>
 
       <div class="date-nav" aria-label="Selecionar dia da agenda">
         <button class="date-step" type="button" onclick="agMudarDia(-1)" aria-label="Dia anterior">‹</button>
@@ -772,10 +783,26 @@ button{-webkit-tap-highlight-color:transparent;}
   <div class="modal">
     <h3 class="modal-title" id="mp-title">Novo Profissional</h3>
     <input type="hidden" id="mp-id">
+    <input type="hidden" id="mp-foto" value="assets/maykon-castro.webp">
+
     <div class="professional-modal-preview">
       <img id="mp-preview" src="assets/maykon-castro.webp" alt="Prévia do profissional">
-      <div><strong>Foto do profissional</strong><span>Use um caminho de imagem do projeto ou uma URL pública.</span></div>
+      <div>
+        <strong>Foto do profissional</strong>
+        <span id="mp-foto-status">Escolha uma foto do celular ou computador. Ela será ajustada automaticamente.</span>
+      </div>
     </div>
+
+    <div class="professional-photo-picker">
+      <input type="file" id="mp-foto-arquivo" accept="image/jpeg,image/png,image/webp" hidden>
+      <label for="mp-foto-arquivo" class="btn btn-gold btn-sm professional-file-button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Escolher foto
+      </label>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="usarFotoPadraoProfissional()">Usar foto padrão</button>
+    </div>
+    <p class="professional-photo-help">Formatos aceitos: JPG, PNG ou WEBP. A imagem é comprimida antes de ser salva para funcionar bem no celular e não pesar no site.</p>
+
     <div class="form-group">
       <label class="form-lbl">Nome</label>
       <input class="form-input" id="mp-nome" placeholder="Ex: Maykon Castro">
@@ -783,10 +810,6 @@ button{-webkit-tap-highlight-color:transparent;}
     <div class="form-group">
       <label class="form-lbl">Especialidade</label>
       <input class="form-input" id="mp-especialidade" placeholder="Ex: Cabeleireiro e barbeiro">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">Foto</label>
-      <input class="form-input" id="mp-foto" value="assets/maykon-castro.webp" placeholder="assets/foto.webp">
     </div>
     <div class="form-group">
       <label class="form-lbl">Ordem de exibição</label>
@@ -798,7 +821,7 @@ button{-webkit-tap-highlight-color:transparent;}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-profissional')">Cancelar</button>
-      <button class="btn btn-gold btn-sm" onclick="salvarProfissional()">Salvar</button>
+      <button class="btn btn-gold btn-sm" id="mp-salvar" onclick="salvarProfissional()">Salvar</button>
     </div>
   </div>
 </div>
@@ -1221,15 +1244,110 @@ window.importarMaykonPadrao = async () => {
   } catch(e) { toast('Erro ao cadastrar profissional.','error'); }
 };
 
+const FOTO_PROFISSIONAL_PADRAO = 'assets/maykon-castro.webp';
+let _processandoFotoProfissional = false;
+
+function atualizarEstadoFotoProfissional(foto, mensagem) {
+  const valor = foto || FOTO_PROFISSIONAL_PADRAO;
+  document.getElementById('mp-foto').value = valor;
+  document.getElementById('mp-preview').src = valor;
+  document.getElementById('mp-foto-status').textContent = mensagem || 'Foto pronta para ser salva.';
+}
+
+function limparSeletorFotoProfissional() {
+  const input = document.getElementById('mp-foto-arquivo');
+  if (input) input.value = '';
+}
+
+function definirProcessamentoFotoProfissional(ativo) {
+  _processandoFotoProfissional = ativo;
+  const salvar = document.getElementById('mp-salvar');
+  if (salvar) {
+    salvar.disabled = ativo;
+    salvar.textContent = ativo ? 'Preparando foto...' : 'Salvar';
+  }
+}
+
+function carregarImagemLocal(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem inválida')); };
+    img.src = url;
+  });
+}
+
+function canvasParaDataURL(canvas, tipo, qualidade) {
+  return new Promise(resolve => {
+    if (!canvas.toBlob) {
+      resolve(canvas.toDataURL(tipo, qualidade));
+      return;
+    }
+    canvas.toBlob(blob => {
+      if (!blob) {
+        resolve(canvas.toDataURL('image/jpeg', qualidade));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    }, tipo, qualidade);
+  });
+}
+
+async function comprimirFotoProfissional(file) {
+  if (!file || !file.type.startsWith('image/')) throw new Error('Escolha um arquivo de imagem.');
+  if (file.size > 12 * 1024 * 1024) throw new Error('A foto deve ter no máximo 12 MB.');
+
+  const img = await carregarImagemLocal(file);
+  const tentativas = [
+    { max: 900, qualidade: .84 },
+    { max: 720, qualidade: .78 },
+    { max: 560, qualidade: .70 }
+  ];
+
+  let resultado = '';
+  for (const tentativa of tentativas) {
+    const escala = Math.min(1, tentativa.max / Math.max(img.naturalWidth, img.naturalHeight));
+    const largura = Math.max(1, Math.round(img.naturalWidth * escala));
+    const altura = Math.max(1, Math.round(img.naturalHeight * escala));
+    const canvas = document.createElement('canvas');
+    canvas.width = largura;
+    canvas.height = altura;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, largura, altura);
+    ctx.drawImage(img, 0, 0, largura, altura);
+
+    resultado = await canvasParaDataURL(canvas, 'image/webp', tentativa.qualidade);
+    if (!String(resultado).startsWith('data:image/webp')) {
+      resultado = await canvasParaDataURL(canvas, 'image/jpeg', tentativa.qualidade);
+    }
+    if (String(resultado).length <= 720000) break;
+  }
+
+  if (!resultado || String(resultado).length > 820000) {
+    throw new Error('A imagem ficou muito pesada. Escolha uma foto menor.');
+  }
+  return resultado;
+}
+
+window.usarFotoPadraoProfissional = () => {
+  limparSeletorFotoProfissional();
+  atualizarEstadoFotoProfissional(FOTO_PROFISSIONAL_PADRAO, 'Foto padrão selecionada.');
+};
+
 window.abrirModalProfissional = () => {
   document.getElementById('mp-title').textContent = 'Novo Profissional';
   document.getElementById('mp-id').value = '';
   document.getElementById('mp-nome').value = '';
   document.getElementById('mp-especialidade').value = '';
-  document.getElementById('mp-foto').value = 'assets/maykon-castro.webp';
   document.getElementById('mp-ordem').value = (_profissionaisAdmin.length||0)+1;
   document.getElementById('mp-ativo').checked = true;
-  document.getElementById('mp-preview').src = 'assets/maykon-castro.webp';
+  limparSeletorFotoProfissional();
+  atualizarEstadoFotoProfissional(FOTO_PROFISSIONAL_PADRAO, 'Escolha uma foto do celular ou computador.');
+  definirProcessamentoFotoProfissional(false);
   abrirModal('modal-profissional');
 };
 
@@ -1240,31 +1358,44 @@ window.editarProfissional = (id) => {
   document.getElementById('mp-id').value = p.id;
   document.getElementById('mp-nome').value = p.nome||'';
   document.getElementById('mp-especialidade').value = p.especialidade||'';
-  document.getElementById('mp-foto').value = p.foto||'assets/maykon-castro.webp';
   document.getElementById('mp-ordem').value = p.ordem||1;
   document.getElementById('mp-ativo').checked = !!p.ativo;
-  document.getElementById('mp-preview').src = p.foto||'assets/maykon-castro.webp';
+  limparSeletorFotoProfissional();
+  atualizarEstadoFotoProfissional(p.foto||FOTO_PROFISSIONAL_PADRAO, 'Foto atual. Escolha outra para substituir.');
+  definirProcessamentoFotoProfissional(false);
   abrirModal('modal-profissional');
 };
 
 window.salvarProfissional = async () => {
+  if (_processandoFotoProfissional) { toast('Aguarde a foto terminar de carregar.','error'); return; }
   const id = document.getElementById('mp-id').value;
   const nome = document.getElementById('mp-nome').value.trim();
   if (!nome) { toast('Informe o nome do profissional.','error'); return; }
   const data = {
     nome,
     especialidade: document.getElementById('mp-especialidade').value.trim(),
-    foto: document.getElementById('mp-foto').value.trim()||'assets/maykon-castro.webp',
+    foto: document.getElementById('mp-foto').value||FOTO_PROFISSIONAL_PADRAO,
     ordem: parseInt(document.getElementById('mp-ordem').value)||1,
     ativo: document.getElementById('mp-ativo').checked
   };
   try {
+    const salvar = document.getElementById('mp-salvar');
+    salvar.disabled = true;
+    salvar.textContent = 'Salvando...';
     if (id) await updateDoc(doc(db,'profissionais',id), data);
     else await addDoc(collection(db,'profissionais'), data);
-    toast('Profissional salvo.');
+    toast('Profissional e foto salvos com sucesso.');
     fecharModal('modal-profissional');
     carregarProfissionaisAdmin();
-  } catch(e) { toast('Erro ao salvar profissional.','error'); }
+  } catch(e) {
+    console.error(e);
+    const msg = String(e?.message||'').toLowerCase().includes('maximum')
+      ? 'A foto ficou muito pesada. Escolha uma imagem menor.'
+      : 'Erro ao salvar profissional.';
+    toast(msg,'error');
+  } finally {
+    definirProcessamentoFotoProfissional(false);
+  }
 };
 
 window.excluirProfissional = async (id) => {
@@ -1276,8 +1407,24 @@ window.excluirProfissional = async (id) => {
   } catch(e) { toast('Erro ao excluir profissional.','error'); }
 };
 
-document.getElementById('mp-foto')?.addEventListener('input', event => {
-  document.getElementById('mp-preview').src = event.target.value.trim() || 'assets/maykon-castro.webp';
+document.getElementById('mp-foto-arquivo')?.addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  definirProcessamentoFotoProfissional(true);
+  document.getElementById('mp-foto-status').textContent = 'Preparando e comprimindo a foto...';
+  try {
+    const dataURL = await comprimirFotoProfissional(file);
+    const tamanhoKb = Math.round((dataURL.length * .75) / 1024);
+    atualizarEstadoFotoProfissional(dataURL, `${file.name} · aproximadamente ${tamanhoKb} KB · pronta para salvar.`);
+    toast('Foto selecionada. Clique em Salvar para confirmar.');
+  } catch(e) {
+    console.error(e);
+    limparSeletorFotoProfissional();
+    toast(e.message || 'Não foi possível processar a foto.','error');
+    document.getElementById('mp-foto-status').textContent = 'Não foi possível carregar essa foto. Tente outra imagem.';
+  } finally {
+    definirProcessamentoFotoProfissional(false);
+  }
 });
 
 // ══════════════ SERVIÇOS ══════════════

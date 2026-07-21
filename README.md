@@ -67,3 +67,6 @@ O projeto utiliza:
 - Firebase Authentication para o painel administrativo.
 
 Copie o conteúdo de `firestore.rules.example` para as regras do Firestore antes de colocar a nova versão em produção.
+
+## Foto dos profissionais
+Na aba **Profissionais**, clique em **Editar** ou **+ Novo Profissional** e use **Escolher foto**. O painel aceita JPG, PNG e WEBP, comprime a imagem automaticamente e salva junto ao cadastro no Firestore. Não é necessário configurar o Firebase Storage para esta versão.
