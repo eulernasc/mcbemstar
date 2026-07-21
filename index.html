@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/site.css?v=20260721-2">
+  <link rel="stylesheet" href="css/site.css?v=20260721-5">
 </head>
 <body>
   <header class="site-header">
@@ -23,8 +23,9 @@
         </span>
       </a>
       <div class="header-actions">
+        <a class="header-link" href="#profissionais">Profissional</a>
         <a class="header-link" href="#servicos">Serviços</a>
-        <a class="btn btn-primary" href="#servicos">Agendar</a>
+        <a class="btn btn-primary" href="#profissionais">Agendar</a>
       </div>
     </div>
   </header>
@@ -35,28 +36,44 @@
         <div class="hero-content">
           <div class="eyebrow">MC Bem Estar Studio</div>
           <h1>Seu estilo,<br><em>seu momento.</em></h1>
-          <p>Cuidado masculino e feminino em um ambiente moderno, leve e acolhedor. Escolha o serviço e reserve seu horário em poucos passos.</p>
+          <p>Cuidado masculino e feminino em um ambiente moderno, leve e acolhedor. Escolha o profissional, o serviço e reserve seu horário em poucos passos.</p>
           <div class="hero-actions">
-            <a href="#servicos" class="btn btn-primary">Escolher serviço</a>
+            <a href="#profissionais" class="btn btn-primary">Começar agendamento</a>
             <a href="#studio" class="btn btn-secondary">Conhecer o studio</a>
           </div>
           <div class="hero-pills" aria-label="Diferenciais">
             <span class="hero-pill">Agendamento rápido</span>
-            <span class="hero-pill">Horários em tempo real</span>
-            <span class="hero-pill">Confirmação pelo WhatsApp</span>
+            <span class="hero-pill">Grade de 30 em 30 min</span>
+            <span class="hero-pill">Confirmação no WhatsApp do cliente</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="servicos">
+    <section class="section professionals-section" id="profissionais">
       <div class="container">
         <div class="section-heading">
           <div>
-            <div class="eyebrow">Agende seu horário</div>
+            <div class="eyebrow">Etapa 1</div>
+            <h2>Escolha o profissional</h2>
+          </div>
+          <p>Selecione quem irá realizar o atendimento. Depois, você verá os serviços disponíveis.</p>
+        </div>
+        <div class="professionals-grid" id="professionals-list">
+          <div class="service-empty">Carregando profissionais...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section services-section is-hidden" id="servicos" aria-hidden="true">
+      <div class="container">
+        <div class="selected-professional-banner" id="selected-professional-banner"></div>
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Etapa 2</div>
             <h2>Escolha um serviço</h2>
           </div>
-          <p>Veja valor e duração antes de reservar. Os horários disponíveis são calculados conforme o tempo de cada serviço.</p>
+          <p>Veja valor e duração antes de reservar. Os horários disponíveis começam sempre a cada 30 minutos e respeitam a duração real do serviço.</p>
         </div>
 
         <div class="service-tools">
@@ -85,7 +102,7 @@
             <div class="feature"><strong>Atendimento personalizado</strong><span>Serviços pensados para cada estilo.</span></div>
             <div class="feature"><strong>Agenda organizada</strong><span>Escolha somente horários realmente disponíveis.</span></div>
             <div class="feature"><strong>Masculino e feminino</strong><span>Um catálogo completo de cuidados.</span></div>
-            <div class="feature"><strong>Confirmação fácil</strong><span>Finalize sua reserva pelo WhatsApp.</span></div>
+            <div class="feature"><strong>Confirmação direta</strong><span>A mensagem será enviada ao WhatsApp do cliente pela integração oficial.</span></div>
           </div>
         </div>
       </div>
@@ -96,9 +113,9 @@
         <div class="cta-card">
           <div>
             <h2>Pronto para renovar o visual?</h2>
-            <p>Escolha seu serviço e encontre o melhor horário.</p>
+            <p>Escolha o profissional, o serviço e encontre o melhor horário.</p>
           </div>
-          <a class="btn btn-primary" href="#servicos">Agendar agora</a>
+          <a class="btn btn-primary" href="#profissionais">Agendar agora</a>
         </div>
       </div>
     </section>
@@ -110,7 +127,7 @@
         <img src="assets/logo-mc.png" alt="MC Bem Estar Studio">
         <div class="footer-copy">© 2026 MC Bem Estar Studio<br>Todos os direitos reservados.</div>
       </div>
-      <a class="admin-link" href="admin.html" title="Acesso restrito">🔒 Área administrativa</a>
+      <a class="admin-link" href="admin.html" title="Acesso restrito">Área administrativa</a>
     </div>
   </footer>
 
@@ -121,7 +138,10 @@
         <button class="close-btn" id="booking-close" aria-label="Fechar">×</button>
       </div>
       <div class="modal-body">
-        <div class="selected-service" id="selected-service"></div>
+        <div class="booking-summary-grid">
+          <div class="selected-professional" id="selected-professional"></div>
+          <div class="selected-service" id="selected-service"></div>
+        </div>
 
         <div class="form-grid">
           <div class="form-group">
@@ -161,7 +181,18 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="success-backdrop" aria-hidden="true">
+    <section class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-title">
+      <div class="success-icon">✓</div>
+      <div class="eyebrow">Agendamento realizado</div>
+      <h3 id="success-title">Seu horário foi reservado</h3>
+      <p id="success-copy"></p>
+      <div class="success-details" id="success-details"></div>
+      <button class="btn btn-primary" id="success-close">Concluir</button>
+    </section>
+  </div>
+
   <div class="toast" id="toast"></div>
-  <script type="module" src="js/app.js?v=20260721-2"></script>
+  <script type="module" src="js/app.js?v=20260721-5"></script>
 </body>
 </html>

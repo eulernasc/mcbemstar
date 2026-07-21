@@ -13,7 +13,15 @@ import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const WHATSAPP_STUDIO = "5535997490869";
+
+const defaultProfessional = {
+  id: "maykon-castro",
+  nome: "Maykon Castro",
+  especialidade: "Cabeleireiro e especialista em cuidados masculinos e femininos",
+  foto: "assets/maykon-castro.webp",
+  ordem: 1,
+  ativo: true
+};
 
 const defaultServices = [
   { id: "padrao-01", nome: "Barba simples", preco: 30, duracao: 30, ordem: 1, ativo: true },
@@ -41,9 +49,11 @@ const defaultServices = [
 ];
 
 const state = {
+  professionals: [],
   services: [],
   filteredServices: [],
-  schedule: { diasAtivos: [1,2,3,4,5,6], inicio: "07:00", fim: "19:00" },
+  schedule: { diasAtivos: [1,2,3,4,5,6], inicio: "07:00", fim: "19:00", intervalo: 30 },
+  selectedProfessional: null,
   selectedService: null,
   selectedDate: null,
   selectedTime: null,
@@ -73,6 +83,18 @@ function showToast(message, type = "success") {
   showToast.timer = setTimeout(() => el.classList.remove("show"), 3600);
 }
 
+async function loadProfessionals() {
+  try {
+    const snap = await getDocs(query(collection(db, "profissionais"), where("ativo", "==", true)));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.ordem || 0) - (b.ordem || 0));
+    state.professionals = list.length ? list : [defaultProfessional];
+  } catch (error) {
+    console.warn("Profissionais indisponíveis; usando cadastro padrão.", error);
+    state.professionals = [defaultProfessional];
+  }
+  renderProfessionals();
+}
+
 async function loadServices() {
   try {
     const snap = await getDocs(query(collection(db, "servicos"), where("ativo", "==", true)));
@@ -94,12 +116,58 @@ async function loadSchedule() {
       state.schedule = {
         diasAtivos: Array.isArray(saved.diasAtivos) ? saved.diasAtivos : [1,2,3,4,5,6],
         inicio: saved.inicio || "07:00",
-        fim: saved.fim || "19:00"
+        fim: saved.fim || "19:00",
+        intervalo: 30
       };
     }
   } catch (error) {
     console.warn("Configuração de horário indisponível; usando padrão.", error);
   }
+}
+
+function renderProfessionals() {
+  const list = $("professionals-list");
+  if (!state.professionals.length) {
+    list.innerHTML = '<div class="service-empty">Nenhum profissional disponível.</div>';
+    return;
+  }
+  list.innerHTML = state.professionals.map(professional => `
+    <article class="professional-card${state.selectedProfessional?.id === professional.id ? " selected" : ""}">
+      <div class="professional-photo">
+        <img src="${escapeHtml(professional.foto || defaultProfessional.foto)}" alt="${escapeHtml(professional.nome)}">
+      </div>
+      <div class="professional-copy">
+        <span class="professional-kicker">Profissional</span>
+        <h3>${escapeHtml(professional.nome)}</h3>
+        <p>${escapeHtml(professional.especialidade || "Profissional do MC Bem Estar Studio")}</p>
+        <div class="professional-tags"><span>Atendimento personalizado</span><span>Masculino e feminino</span></div>
+        <button class="btn btn-primary choose-professional" data-professional-id="${escapeHtml(professional.id)}">
+          ${state.selectedProfessional?.id === professional.id ? "Profissional selecionado" : `Escolher ${escapeHtml(professional.nome.split(" ")[0])}`}
+        </button>
+      </div>
+    </article>
+  `).join("");
+
+  list.querySelectorAll("[data-professional-id]").forEach(button => {
+    button.addEventListener("click", () => selectProfessional(button.dataset.professionalId));
+  });
+}
+
+function selectProfessional(professionalId) {
+  state.selectedProfessional = state.professionals.find(item => item.id === professionalId);
+  if (!state.selectedProfessional) return;
+  renderProfessionals();
+  const section = $("servicos");
+  section.classList.remove("is-hidden");
+  section.setAttribute("aria-hidden", "false");
+  $("selected-professional-banner").innerHTML = `
+    <img src="${escapeHtml(state.selectedProfessional.foto || defaultProfessional.foto)}" alt="${escapeHtml(state.selectedProfessional.nome)}">
+    <div><span>Profissional selecionado</span><strong>${escapeHtml(state.selectedProfessional.nome)}</strong></div>
+    <button type="button" id="change-professional">Trocar</button>`;
+  $("change-professional").addEventListener("click", () => {
+    document.querySelector("#profissionais").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
 }
 
 function renderServices() {
@@ -139,6 +207,11 @@ function filterServices(term) {
 }
 
 function openBooking(serviceId) {
+  if (!state.selectedProfessional) {
+    showToast("Escolha o profissional antes do serviço.", "error");
+    $("profissionais").scrollIntoView({ behavior: "smooth" });
+    return;
+  }
   state.selectedService = state.services.find(service => service.id === serviceId);
   if (!state.selectedService) return;
   state.selectedDate = null;
@@ -146,9 +219,12 @@ function openBooking(serviceId) {
   state.calendarDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   state.bookingsForDate = [];
 
+  $("selected-professional").innerHTML = `
+    <img src="${escapeHtml(state.selectedProfessional.foto || defaultProfessional.foto)}" alt="${escapeHtml(state.selectedProfessional.nome)}">
+    <div><span>Profissional</span><strong>${escapeHtml(state.selectedProfessional.nome)}</strong></div>`;
   $("selected-service").innerHTML = `
     <div class="service-logo"><img src="assets/logo-mc-mark.png" alt="MC"></div>
-    <div><strong>${escapeHtml(state.selectedService.nome)}</strong><span>${state.selectedService.aPartirDe ? "A partir de " : ""}${money(state.selectedService.preco)} · ${Number(state.selectedService.duracao || 30)} min</span></div>`;
+    <div><span>Serviço</span><strong>${escapeHtml(state.selectedService.nome)}</strong><small>${state.selectedService.aPartirDe ? "A partir de " : ""}${money(state.selectedService.preco)} · ${Number(state.selectedService.duracao || 30)} min</small></div>`;
   $("selected-date-label").textContent = "";
   $("slot-help").textContent = "Selecione uma data";
   $("slots-grid").innerHTML = '<div class="slots-empty">Selecione um dia para ver os horários.</div>';
@@ -163,6 +239,12 @@ function openBooking(serviceId) {
 function closeBooking() {
   $("booking-backdrop").classList.remove("open");
   $("booking-backdrop").setAttribute("aria-hidden", "true");
+  document.body.classList.remove("locked");
+}
+
+function closeSuccess() {
+  $("success-backdrop").classList.remove("open");
+  $("success-backdrop").setAttribute("aria-hidden", "true");
   document.body.classList.remove("locked");
 }
 
@@ -196,6 +278,12 @@ function renderCalendar() {
   }
 }
 
+function belongsToSelectedProfessional(booking) {
+  if (!state.selectedProfessional) return true;
+  const bookingProfessional = booking.profissionalId || defaultProfessional.id;
+  return bookingProfessional === state.selectedProfessional.id;
+}
+
 async function fetchBookingsForDate(date) {
   const requests = [
     getDocs(query(collection(db, "agenda_publica"), where("data", "==", date))),
@@ -210,7 +298,7 @@ async function fetchBookingsForDate(date) {
   if (!merged.size && settled.every(result => result.status === "rejected")) {
     throw new Error("Não foi possível consultar a agenda.");
   }
-  return [...merged.values()].filter(item => item.status !== "cancelado");
+  return [...merged.values()].filter(item => item.status !== "cancelado" && belongsToSelectedProfessional(item));
 }
 
 async function selectDate(date) {
@@ -245,46 +333,22 @@ function isOverlapping(start, end, bookings = state.bookingsForDate) {
 }
 
 function generateAvailableSlots() {
-  if (!state.selectedDate || !state.selectedService) return [];
+  if (!state.selectedDate || !state.selectedService || !state.selectedProfessional) return [];
 
   const opening = timeToMinutes(state.schedule.inicio);
   const closing = timeToMinutes(state.schedule.fim);
-  const duration = Math.max(5, Number(state.selectedService.duracao || 60));
+  const duration = Math.max(5, Number(state.selectedService.duracao || 30));
+  const interval = 30;
   const now = new Date();
   const todayKey = dateKey(now);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const slots = [];
 
-  // Organiza e une os períodos já ocupados para descobrir os intervalos realmente livres.
-  const occupied = state.bookingsForDate
-    .map(booking => {
-      const start = timeToMinutes(booking.hora);
-      const end = start + bookingDuration(booking);
-      return { start: Math.max(opening, start), end: Math.min(closing, end) };
-    })
-    .filter(period => Number.isFinite(period.start) && Number.isFinite(period.end) && period.end > opening && period.start < closing)
-    .sort((a, b) => a.start - b.start)
-    .reduce((merged, period) => {
-      const last = merged[merged.length - 1];
-      if (!last || period.start > last.end) merged.push({ ...period });
-      else last.end = Math.max(last.end, period.end);
-      return merged;
-    }, []);
-
-  const addFreeWindow = (windowStart, windowEnd) => {
-    for (let start = windowStart; start + duration <= windowEnd; start += duration) {
-      if (state.selectedDate === todayKey && start <= currentMinutes) continue;
-      slots.push(minutesToTime(start));
-    }
-  };
-
-  let freeStart = opening;
-  occupied.forEach(period => {
-    if (period.start > freeStart) addFreeWindow(freeStart, period.start);
-    freeStart = Math.max(freeStart, period.end);
-  });
-  if (freeStart < closing) addFreeWindow(freeStart, closing);
-
+  for (let start = opening; start + duration <= closing; start += interval) {
+    if (state.selectedDate === todayKey && start <= currentMinutes) continue;
+    const end = start + duration;
+    if (!isOverlapping(start, end)) slots.push(minutesToTime(start));
+  }
   return slots;
 }
 
@@ -310,14 +374,30 @@ function formatPhone(value) {
   return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
 }
 
+function showBookingSuccess({ name, phone }) {
+  const [year, month, day] = state.selectedDate.split("-");
+  $("success-copy").textContent = `${name}, seu agendamento foi registrado. A confirmação automática será destinada somente ao WhatsApp informado no cadastro.`;
+  $("success-details").innerHTML = `
+    <div><span>Profissional</span><strong>${escapeHtml(state.selectedProfessional.nome)}</strong></div>
+    <div><span>Serviço</span><strong>${escapeHtml(state.selectedService.nome)}</strong></div>
+    <div><span>Data</span><strong>${day}/${month}/${year}</strong></div>
+    <div><span>Horário</span><strong>${state.selectedTime}</strong></div>
+    <div><span>WhatsApp</span><strong>${escapeHtml(phone)}</strong></div>`;
+  $("success-backdrop").classList.add("open");
+  $("success-backdrop").setAttribute("aria-hidden", "false");
+  document.body.classList.add("locked");
+}
+
 async function confirmBooking() {
   const name = $("booking-name").value.trim();
   const phone = $("booking-phone").value.replace(/\D/g, "");
+  const formattedPhone = $("booking-phone").value;
   const statusEl = $("booking-status");
   statusEl.textContent = "";
 
   if (name.length < 2) { statusEl.textContent = "Informe seu nome."; return; }
   if (phone.length < 10) { statusEl.textContent = "Informe um WhatsApp válido."; return; }
+  if (!state.selectedProfessional) { statusEl.textContent = "Escolha o profissional."; return; }
   if (!state.selectedDate) { statusEl.textContent = "Escolha a data."; return; }
   if (!state.selectedTime) { statusEl.textContent = "Escolha o horário."; return; }
 
@@ -325,7 +405,6 @@ async function confirmBooking() {
   confirmButton.disabled = true;
   confirmButton.textContent = "Confirmando...";
   try {
-    // Confere novamente para diminuir risco de dois clientes escolherem o mesmo intervalo.
     const latestBookings = await fetchBookingsForDate(state.selectedDate);
     const start = timeToMinutes(state.selectedTime);
     const end = start + Number(state.selectedService.duracao || 30);
@@ -345,32 +424,25 @@ async function confirmBooking() {
       servicoNome: state.selectedService.nome,
       preco: Number(state.selectedService.preco || 0),
       duracao: Number(state.selectedService.duracao || 30),
+      profissionalId: state.selectedProfessional.id,
+      profissionalNome: state.selectedProfessional.nome,
       data: state.selectedDate,
       hora: state.selectedTime,
       status: "confirmado",
+      whatsappDestino: phone,
+      whatsappConfirmacaoStatus: "pendente_api",
       criadoEm: new Date().toISOString()
     });
     await setDoc(publicRef, {
       data: state.selectedDate,
       hora: state.selectedTime,
       duracao: Number(state.selectedService.duracao || 30),
+      profissionalId: state.selectedProfessional.id,
       status: "confirmado"
     }).catch(error => console.warn("Agenda pública não pôde ser espelhada.", error));
 
-    const [year, month, day] = state.selectedDate.split("-");
-    const message = encodeURIComponent(
-      `Olá! Gostaria de confirmar meu agendamento no MC Bem Estar Studio.\n\n` +
-      `*Serviço:* ${state.selectedService.nome}\n` +
-      `*Data:* ${day}/${month}/${year}\n` +
-      `*Horário:* ${state.selectedTime}\n` +
-      `*Duração:* ${Number(state.selectedService.duracao || 30)} min\n` +
-      `*Nome:* ${name}\n` +
-      `*WhatsApp:* ${$("booking-phone").value}`
-    );
-
     closeBooking();
-    showToast("Horário reservado. Abrindo o WhatsApp...", "success");
-    setTimeout(() => window.location.assign(`https://wa.me/${WHATSAPP_STUDIO}?text=${message}`), 450);
+    showBookingSuccess({ name, phone: formattedPhone });
   } catch (error) {
     console.error(error);
     statusEl.textContent = error.message || "Não foi possível concluir. Tente novamente.";
@@ -385,6 +457,7 @@ $("booking-close").addEventListener("click", closeBooking);
 $("booking-cancel").addEventListener("click", closeBooking);
 $("booking-confirm").addEventListener("click", confirmBooking);
 $("booking-phone").addEventListener("input", event => { event.target.value = formatPhone(event.target.value); });
+$("success-close").addEventListener("click", closeSuccess);
 $("calendar-prev").addEventListener("click", () => {
   const now = new Date();
   const previous = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
@@ -398,8 +471,13 @@ $("calendar-next").addEventListener("click", () => {
 $("booking-backdrop").addEventListener("click", event => {
   if (event.target === $("booking-backdrop")) closeBooking();
 });
+$("success-backdrop").addEventListener("click", event => {
+  if (event.target === $("success-backdrop")) closeSuccess();
+});
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && $("booking-backdrop").classList.contains("open")) closeBooking();
+  if (event.key !== "Escape") return;
+  if ($("booking-backdrop").classList.contains("open")) closeBooking();
+  if ($("success-backdrop").classList.contains("open")) closeSuccess();
 });
 
-await Promise.all([loadSchedule(), loadServices()]);
+await Promise.all([loadSchedule(), loadProfessionals(), loadServices()]);

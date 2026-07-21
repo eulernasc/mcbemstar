@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>MC Bem Estar Studio | Painel Administrativo</title>
 <link rel="icon" href="assets/logo-mc-mark.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -198,6 +198,223 @@ th{background:#f8f6f1;}
 .mob-topbar{background:#fff;}
 @media(max-width:900px){.main{padding:80px 14px 50px}.login-box{padding:26px 20px}.agenda-item{grid-template-columns:64px 1fr;}.ag-status,.ag-actions{grid-column:2}.sidebar{box-shadow:20px 0 50px rgba(0,0,0,.14)}}
 
+
+/* ══════════════════════════════════════════════════════════════
+   PAINEL RESPONSIVO — CELULAR, TABLET E IPAD
+   ══════════════════════════════════════════════════════════════ */
+html{scroll-behavior:smooth;}
+body.sidebar-open{overflow:hidden;}
+:root{--mobile-safe-top:env(safe-area-inset-top);--mobile-header-height:calc(64px + var(--mobile-safe-top));}
+button,input,select,textarea{font:inherit;}
+button{-webkit-tap-highlight-color:transparent;}
+
+/* Topo móvel e navegação rápida */
+.mob-topbar{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;
+  min-height:var(--mobile-header-height);
+  padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));
+  padding-top:max(8px,env(safe-area-inset-top));
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid var(--border2);
+  box-shadow:0 8px 26px rgba(45,39,27,.08);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  z-index:120;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.mob-brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.mob-brand img{width:54px;height:40px;object-fit:contain;mix-blend-mode:multiply;flex:none;}
+.mob-brand-copy{min-width:0;line-height:1.15;}
+.mob-brand-copy strong{display:block;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;white-space:nowrap;}
+.mob-brand-copy span{display:block;color:var(--gold3);font-size:8px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
+.mob-burger{
+  min-width:88px;height:42px;padding:0 14px;border:1px solid var(--border);border-radius:12px;
+  background:#fff;color:var(--gold3);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 5px 16px rgba(45,39,27,.05);
+}
+.mob-burger .bars{font-size:19px;line-height:1;}
+
+.mobile-tabs{
+  display:none;
+  position:fixed;
+  left:0;right:0;
+  top:var(--mobile-header-height);
+  z-index:110;
+  padding:8px max(10px,env(safe-area-inset-right)) 9px max(10px,env(safe-area-inset-left));
+  background:rgba(244,243,240,.96);
+  border-bottom:1px solid var(--border2);
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+  gap:7px;
+  -webkit-overflow-scrolling:touch;
+}
+.mobile-tabs::-webkit-scrollbar{display:none;}
+.mobile-tab{
+  flex:0 0 auto;min-height:38px;padding:0 13px;border:1px solid rgba(179,138,47,.18);border-radius:999px;
+  background:#fff;color:#716e67;font-size:10px;font-weight:800;letter-spacing:.05em;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.mobile-tab.active{background:linear-gradient(135deg,#c49b42,#936c21);border-color:transparent;color:#fff;box-shadow:0 7px 18px rgba(147,108,33,.22);}
+
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(22,20,16,.46);backdrop-filter:blur(3px);z-index:129;}
+.sidebar-overlay.show{display:block;}
+.sidebar-close{display:none;position:absolute;right:12px;top:12px;width:38px;height:38px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--gold3);font-size:22px;align-items:center;justify-content:center;}
+
+/* Navegador de data */
+.date-nav{
+  width:min(100%,620px);
+  display:grid;
+  grid-template-columns:44px minmax(220px,1fr) 44px auto;
+  align-items:center;
+  gap:10px;
+  margin:0 0 28px;
+}
+.date-step{
+  width:44px!important;height:44px!important;border-radius:13px!important;background:#fff!important;
+  border:1px solid var(--border)!important;color:var(--gold3)!important;font-size:20px!important;
+  display:grid;place-items:center;box-shadow:0 5px 15px rgba(45,39,27,.04);
+}
+.date-step:hover{background:#faf6ec!important;border-color:var(--gold)!important;}
+.date-picker-shell{
+  min-width:0;height:52px;position:relative;display:flex;align-items:center;justify-content:center;gap:9px;
+  padding:0 42px 0 16px;border:1px solid var(--border);border-radius:15px;background:#fff;
+  box-shadow:0 7px 20px rgba(45,39,27,.045);cursor:pointer;overflow:hidden;
+}
+.date-picker-shell::after{content:'▾';position:absolute;right:16px;top:50%;transform:translateY(-52%);font-size:15px;color:var(--gold3);pointer-events:none;}
+.date-picker-icon{font-size:16px;color:var(--gold3);flex:none;}
+.date-lbl{font-family:'Cormorant Garamond',serif;font-size:20px;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.date-picker-shell input[type=date]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;color-scheme:light;}
+.date-today-btn{
+  width:auto!important;height:44px!important;padding:0 18px!important;border-radius:13px!important;
+  background:linear-gradient(135deg,#c49b42,#936c21)!important;color:#fff!important;border:0!important;
+  font-size:10px!important;font-weight:800!important;letter-spacing:.12em!important;box-shadow:0 7px 18px rgba(147,108,33,.20);
+}
+.date-today-btn:hover{filter:brightness(1.05);}
+
+/* Melhor organização geral */
+.main{width:calc(100% - 220px);max-width:none;padding-right:max(32px,env(safe-area-inset-right));}
+.page{max-width:1240px;}
+.card{overflow:hidden;}
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.page-head .btn{min-height:44px;}
+
+@media (max-width:1100px){
+  .mob-topbar{display:flex;}
+  .mobile-tabs{display:flex;}
+  .sidebar{
+    width:min(86vw,310px);transform:translateX(-105%);transition:transform .25s ease;
+    top:0;bottom:0;z-index:130;padding-top:max(26px,env(safe-area-inset-top));box-shadow:24px 0 70px rgba(0,0,0,.18);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-close{display:flex;}
+  .sb-logo{padding-right:58px;}
+  .main{
+    width:100%;margin-left:0;max-width:none;
+    padding:calc(142px + var(--mobile-safe-top)) max(22px,env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));
+  }
+  .page{max-width:none;}
+  .form-row{grid-template-columns:1fr 1fr;}
+}
+
+@media (max-width:720px){
+  .main{padding-top:calc(138px + var(--mobile-safe-top));padding-left:14px;padding-right:14px;}
+  .page-tag{font-size:9px;letter-spacing:.22em;}
+  .page-title{font-size:clamp(30px,9vw,39px);line-height:1.02;}
+  .page-sub{font-size:12px;margin-bottom:24px;}
+  .page-head{align-items:stretch;display:block;}
+  .page-head>button,.page-head>div+button{width:100%;justify-content:center;margin-bottom:18px;}
+  .page-head>div[style*="display:flex"]{width:100%!important;display:grid!important;grid-template-columns:1fr!important;}
+  .page-head>div[style*="display:flex"] .btn{justify-content:center;width:100%;}
+  .date-nav{grid-template-columns:42px minmax(0,1fr) 42px;gap:8px;width:100%;}
+  .date-step{width:42px!important;height:42px!important;}
+  .date-picker-shell{height:48px;padding:0 30px 0 10px;gap:6px;}
+  .date-picker-shell::after{right:10px;}
+  .date-picker-icon{display:none;}
+  .date-lbl{font-size:18px;}
+  .date-today-btn{grid-column:1/-1;width:100%!important;height:42px!important;}
+  .agenda-item{grid-template-columns:64px minmax(0,1fr);gap:7px 12px;padding:15px;border-radius:14px;}
+  .ag-hora{font-size:22px;grid-row:1/3;align-self:start;}
+  .ag-nome{font-size:14px;font-weight:700;overflow-wrap:anywhere;}
+  .ag-serv{overflow-wrap:anywhere;}
+  .ag-status{grid-column:2;justify-self:start;}
+  .ag-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:7px;}
+  .ag-actions button{width:100%;height:38px;border-radius:10px;}
+  .empty-state{padding:38px 16px;border-radius:15px;}
+  .form-row{grid-template-columns:1fr;gap:0;}
+  .card{padding:18px;border-radius:15px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi{padding:17px;min-width:0;}
+  .kpi-val{font-size:22px;overflow-wrap:anywhere;}
+  .month-pick{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;width:100%;}
+  .month-pick button{width:42px;height:42px;border-radius:11px;background:#fff;}
+  .month-pick .date-lbl{min-width:0!important;}
+  .dias-chk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .dia-chk-box{width:100%;height:42px;border-radius:10px;}
+  .modal-bg{padding:0;align-items:flex-end;}
+  .modal{max-width:none;width:100%;max-height:94dvh;border-radius:22px 22px 0 0;padding:22px 16px calc(20px + env(safe-area-inset-bottom));}
+  .modal-foot{position:sticky;bottom:0;background:#fff;padding-top:12px;display:grid;grid-template-columns:1fr 1fr;}
+  .modal-foot .btn{justify-content:center;}
+  .toast{left:14px;right:14px;bottom:calc(18px + env(safe-area-inset-bottom));max-width:none;text-align:center;}
+  .card[style*="overflow-x:auto"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch;}
+  table{min-width:720px;}
+}
+
+@media (max-width:420px){
+  .mob-brand-copy strong{font-size:16px;}
+  .mob-brand-copy span{font-size:7px;letter-spacing:.12em;}
+  .mob-brand img{width:45px;height:36px;}
+  .mob-burger{min-width:74px;padding:0 11px;}
+  .mobile-tab{padding:0 11px;}
+  .main{padding-left:11px;padding-right:11px;}
+  .date-lbl{font-size:16px;}
+  .kpi-grid{grid-template-columns:1fr;}
+  .dias-chk{grid-template-columns:repeat(3,1fr);}
+}
+
+
+/* Painel visual atualizado — ícones dourados e profissionais */
+.menu-icon{width:20px;height:20px;display:block;flex:none;}
+.sb-item .ic{
+  width:38px;height:38px;display:grid;place-items:center;border-radius:11px;
+  color:var(--gold3);background:linear-gradient(135deg,#fbf7ec,#f1e5c7);
+  border:1px solid rgba(179,138,47,.22);transition:.18s;
+}
+.sb-item.active .ic{color:#fff;background:linear-gradient(135deg,#c49b42,#936c21);box-shadow:0 8px 18px rgba(147,108,33,.2);}
+.sb-item{min-height:52px;padding:7px 10px;gap:11px;font-size:11px;}
+.mobile-tab .menu-icon{width:17px;height:17px;color:var(--gold3);}
+.mobile-tab.active .menu-icon{color:#fff;}
+.professionals-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;}
+.professional-admin-card{display:grid;grid-template-columns:190px 1fr;background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 12px 34px rgba(41,36,25,.07);}
+.professional-admin-card>img{width:100%;height:100%;min-height:270px;object-fit:cover;object-position:center 20%;background:#ebe9e4;}
+.professional-admin-content{padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;}
+.professional-admin-kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold3);font-weight:900;}
+.professional-admin-content h3{font-family:'Cormorant Garamond',serif;font-size:34px;line-height:1;margin:8px 0 10px;}
+.professional-admin-content p{font-size:12px;line-height:1.65;color:var(--gray);margin:0 0 18px;}
+.professional-admin-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.danger-btn{color:var(--red)!important;}
+.professional-modal-preview{display:grid;grid-template-columns:76px 1fr;gap:13px;align-items:center;padding:10px;background:#f8f6f1;border:1px solid var(--border);border-radius:14px;margin-bottom:18px;}
+.professional-modal-preview img{width:76px;height:82px;border-radius:12px;object-fit:cover;object-position:center 20%;}
+.professional-modal-preview strong{display:block;font-size:12px;margin-bottom:4px;}
+.professional-modal-preview span{display:block;font-size:10px;color:var(--gray);line-height:1.5;}
+.schedule-note{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#faf8f3;color:var(--gray);line-height:1.65;font-size:12px;}
+@media(max-width:720px){
+  .professionals-admin-grid{grid-template-columns:1fr;}
+  .professional-admin-card{grid-template-columns:1fr;}
+  .professional-admin-card>img{height:360px;min-height:0;}
+  .professional-admin-content{padding:20px 17px;}
+  .professional-admin-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+  .professional-admin-actions .badge{grid-column:1/-1;justify-self:start;}
+  .professional-admin-actions .btn{width:100%;justify-content:center;}
+}
+
+
+.admin-update-note{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:8px 12px;margin:-8px 0 20px;border-radius:999px;background:#f6eedb;border:1px solid rgba(179,138,47,.22);color:#75602d;font-size:10px;}
+@media(max-width:720px){.admin-update-note{width:100%;border-radius:12px;line-height:1.45;align-items:flex-start;}}
 </style>
 </head>
 <body>
@@ -220,23 +437,40 @@ th{background:#f8f6f1;}
 
 <!-- ═══ APP ═══ -->
 <div id="app-shell">
-  <div class="mob-topbar">
-    <div class="sb-logo-mark">MC Bem Estar</div>
-    <button class="mob-burger" onclick="toggleSidebar()">☰</button>
-  </div>
+  <header class="mob-topbar">
+    <div class="mob-brand">
+      <img src="assets/logo-mc-mark.png" alt="MC">
+      <div class="mob-brand-copy"><strong>MC Bem Estar</strong><span>Painel v2 · Profissionais</span></div>
+    </div>
+    <button class="mob-burger" type="button" onclick="toggleSidebar()" aria-label="Abrir menu"><span class="bars">☰</span> Menu</button>
+  </header>
+
+  <nav class="mobile-tabs" aria-label="Navegação do painel">
+    <button class="mobile-tab active" data-page="agenda" onclick="showPage('agenda',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg><span>Agenda</span></button>
+    <button class="mobile-tab" data-page="profissionais" onclick="showPage('profissionais',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.9.2 4.5 2 5 5.5"/></svg><span>Profissionais</span></button>
+    <button class="mobile-tab" data-page="servicos" onclick="showPage('servicos',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 11 7M8.5 15.5l11-7M13 12l6.5 4.2M13 12l6.5-4.2"/></svg><span>Serviços</span></button>
+    <button class="mobile-tab" data-page="horarios" onclick="showPage('horarios',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horários</span></button>
+    <button class="mobile-tab" data-page="financeiro" onclick="showPage('financeiro',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v12H4z"/><path d="M4 10h16M8 15h4"/><path d="M16 4v3M8 4v3"/></svg><span>Financeiro</span></button>
+    <button class="mobile-tab" data-page="dre" onclick="showPage('dre',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>DRE</span></button>
+    <button class="mobile-tab" data-page="relatorio" onclick="showPage('relatorio',this)"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M9 13h7M9 17h7"/></svg><span>Relatório</span></button>
+  </nav>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
   <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" type="button" onclick="closeSidebar()" aria-label="Fechar menu">×</button>
     <div class="sb-logo">
       <img src="assets/logo-mc.png" alt="MC Bem Estar Studio" class="sb-logo-img">
-      <div class="sb-logo-sub">Painel Administrativo</div>
+      <div class="sb-logo-sub">Painel Administrativo · v2</div>
     </div>
     <nav class="sb-nav">
-      <div class="sb-item active" data-page="agenda" onclick="showPage('agenda',this)"><span class="ic">📅</span>Agenda</div>
-      <div class="sb-item" data-page="servicos" onclick="showPage('servicos',this)"><span class="ic">✂️</span>Serviços</div>
-      <div class="sb-item" data-page="horarios" onclick="showPage('horarios',this)"><span class="ic">🕐</span>Horários</div>
-      <div class="sb-item" data-page="financeiro" onclick="showPage('financeiro',this)"><span class="ic">💰</span>Financeiro</div>
-      <div class="sb-item" data-page="dre" onclick="showPage('dre',this)"><span class="ic">📊</span>DRE</div>
-      <div class="sb-item" data-page="relatorio" onclick="showPage('relatorio',this)"><span class="ic">📄</span>Relatório</div>
+      <div class="sb-item active" data-page="agenda" onclick="showPage('agenda',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg></span><span>Agenda</span></div>
+      <div class="sb-item" data-page="profissionais" onclick="showPage('profissionais',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c2.9.2 4.5 2 5 5.5"/></svg></span><span>Profissionais</span></div>
+      <div class="sb-item" data-page="servicos" onclick="showPage('servicos',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 11 7M8.5 15.5l11-7M13 12l6.5 4.2M13 12l6.5-4.2"/></svg></span><span>Serviços</span></div>
+      <div class="sb-item" data-page="horarios" onclick="showPage('horarios',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Horários</span></div>
+      <div class="sb-item" data-page="financeiro" onclick="showPage('financeiro',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v12H4z"/><path d="M4 10h16M8 15h4"/><path d="M16 4v3M8 4v3"/></svg></span><span>Financeiro</span></div>
+      <div class="sb-item" data-page="dre" onclick="showPage('dre',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span>DRE</span></div>
+      <div class="sb-item" data-page="relatorio" onclick="showPage('relatorio',this)"><span class="ic"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M9 13h7M9 17h7"/></svg></span><span>Relatório</span></div>
     </nav>
     <div class="sb-foot">
       <a href="index.html" class="sb-logout sb-site-link">Abrir site ↗</a>
@@ -252,15 +486,39 @@ th{background:#f8f6f1;}
       <div class="page-tag">Agenda do studio</div>
       <h1 class="page-title">Agenda do <em>Dia</em></h1>
       <p class="page-sub">Acompanhe e gerencie os agendamentos do dia selecionado.</p>
+      <div class="admin-update-note"><strong>Nova versão:</strong> profissionais, grade de 30 minutos e menu com identidade dourada.</div>
 
-      <div class="date-nav">
-        <button onclick="agMudarDia(-1)">‹</button>
-        <span class="date-lbl" id="ag-date-lbl"></span>
-        <button onclick="agMudarDia(1)">›</button>
-        <button class="date-today-btn" onclick="agIrHoje()">Hoje</button>
+      <div class="date-nav" aria-label="Selecionar dia da agenda">
+        <button class="date-step" type="button" onclick="agMudarDia(-1)" aria-label="Dia anterior">‹</button>
+        <label class="date-picker-shell" title="Clique para escolher uma data">
+          <span class="date-picker-icon">📅</span>
+          <span class="date-lbl" id="ag-date-lbl"></span>
+          <input type="date" id="ag-date-picker" aria-label="Escolher data da agenda">
+        </label>
+        <button class="date-step" type="button" onclick="agMudarDia(1)" aria-label="Próximo dia">›</button>
+        <button class="date-today-btn" type="button" onclick="agIrHoje()">Ir para hoje</button>
       </div>
 
       <div id="ag-list"></div>
+    </div>
+
+
+    <!-- PROFISSIONAIS -->
+    <div class="page" id="page-profissionais">
+      <div class="page-head">
+        <div>
+          <div class="page-tag">Equipe do studio</div>
+          <h1 class="page-title">Gestão de <em>Profissionais</em></h1>
+          <p class="page-sub">Cadastre quem atende no studio. O cliente escolhe o profissional antes de visualizar os serviços.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="importarMaykonPadrao()">Cadastrar Maykon</button>
+          <button class="btn btn-gold" onclick="abrirModalProfissional()">+ Novo Profissional</button>
+        </div>
+      </div>
+      <div class="professionals-admin-grid" id="profissionais-grid">
+        <div class="empty-state">Carregando profissionais...</div>
+      </div>
     </div>
 
     <!-- SERVIÇOS -->
@@ -303,10 +561,20 @@ th{background:#f8f6f1;}
             <input type="time" class="form-input" id="hor-fim">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-lbl">Intervalo de início</label>
+            <input class="form-input" value="30 minutos" disabled aria-label="Intervalo fixo de 30 minutos">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Regra de ocupação</label>
+            <input class="form-input" value="Respeita a duração do serviço" disabled>
+          </div>
+        </div>
         <div class="form-group">
-          <label class="form-lbl">Cálculo dos horários</label>
-          <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.035);color:var(--gray2);line-height:1.6">
-            Os horários são montados automaticamente conforme a duração do serviço. Um serviço de 60 minutos gera horários de hora em hora; um serviço de 45 minutos gera 07:00, 07:45, 08:30 e assim por diante. Após um atendimento ocupado, a próxima opção começa exatamente quando ele termina.
+          <label class="form-lbl">Como funciona</label>
+          <div class="schedule-note">
+            Os horários começam sempre de 30 em 30 minutos: 07:00, 07:30, 08:00 e assim por diante. A duração real do serviço continua bloqueando os horários que se sobrepõem. Exemplo: um serviço de 45 minutos iniciado às 07:00 bloqueia 07:30 e libera novamente às 08:00.
           </div>
         </div>
       </div>
@@ -417,6 +685,43 @@ th{background:#f8f6f1;}
     <div class="modal-foot">
       <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-concluir')">Cancelar</button>
       <button class="btn btn-gold btn-sm" onclick="confirmarConclusao()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL PROFISSIONAL -->
+<div class="modal-bg" id="modal-profissional">
+  <div class="modal">
+    <h3 class="modal-title" id="mp-title">Novo Profissional</h3>
+    <input type="hidden" id="mp-id">
+    <div class="professional-modal-preview">
+      <img id="mp-preview" src="assets/maykon-castro.webp" alt="Prévia do profissional">
+      <div><strong>Foto do profissional</strong><span>Use um caminho de imagem do projeto ou uma URL pública.</span></div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Nome</label>
+      <input class="form-input" id="mp-nome" placeholder="Ex: Maykon Castro">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Especialidade</label>
+      <input class="form-input" id="mp-especialidade" placeholder="Ex: Cabeleireiro e barbeiro">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Foto</label>
+      <input class="form-input" id="mp-foto" value="assets/maykon-castro.webp" placeholder="assets/foto.webp">
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Ordem de exibição</label>
+      <input type="number" class="form-input" id="mp-ordem" placeholder="1">
+    </div>
+    <div class="chk-row">
+      <input type="checkbox" id="mp-ativo" checked style="width:16px;height:16px">
+      <label for="mp-ativo">Ativo (visível no agendamento público)</label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-profissional')">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="salvarProfissional()">Salvar</button>
     </div>
   </div>
 </div>
@@ -551,6 +856,7 @@ const SERVICOS_PADRAO = [
   ['Limpeza de pele / revitalização',45,45],['Luzes',100,120],['Pezinho barba',20,15],
   ['Pezinho cabelo + barba completa',45,30],['Platinado',145,150],['Selagem / Botox',100,45]
 ].map(([nome,preco,duracao],i)=>({nome,preco,duracao,ordem:i+1,ativo:true,descricao:'',aPartirDe:['Corte + pigmentação cabelo + barba','Platinado'].includes(nome)}));
+const PROFISSIONAL_PADRAO = { nome:'Maykon Castro', especialidade:'Cabeleireiro e especialista em cuidados masculinos e femininos', foto:'assets/maykon-castro.webp', ordem:1, ativo:true };
 
 // ── Utils ──
 function fmtMoeda(v){ return 'R$ ' + Number(v||0).toFixed(2).replace('.',','); }
@@ -563,7 +869,22 @@ function toast(msg, tipo='success') {
 }
 window.fecharModal = (id) => document.getElementById(id).classList.remove('show');
 function abrirModal(id) { document.getElementById(id).classList.add('show'); }
-window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('open');
+window.toggleSidebar = () => {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const willOpen = !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', willOpen);
+  overlay.classList.toggle('show', willOpen);
+  document.body.classList.toggle('sidebar-open', willOpen);
+};
+window.closeSidebar = () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+  document.body.classList.remove('sidebar-open');
+};
+
+window.addEventListener('keydown', event => { if (event.key === 'Escape') window.closeSidebar(); });
+window.addEventListener('resize', () => { if (window.innerWidth > 1100) window.closeSidebar(); });
 
 // ── LOGIN (Firebase Auth) ──
 window.toggleSenhaVisivel = () => {
@@ -624,7 +945,7 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-shell').style.display = 'flex';
-    initAgenda(); carregarServicosAdmin(); initHorarios(); initFinanceiro(); initDRE(); initRelatorio();
+    initAgenda(); carregarProfissionaisAdmin(); carregarServicosAdmin(); initHorarios(); initFinanceiro(); initDRE(); initRelatorio();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-shell').style.display = 'none';
@@ -634,24 +955,43 @@ onAuthStateChanged(auth, (user) => {
 // ── NAV ──
 window.showPage = (page, el) => {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  el.classList.add('active');
-  document.querySelector('.main').scrollTop = 0;
-  window.scrollTo(0,0);
-  if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+  document.querySelectorAll('[data-page]').forEach(n=>n.classList.toggle('active', n.dataset.page === page));
+  const target = document.getElementById('page-'+page);
+  if (target) target.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  window.closeSidebar();
+  const activeMobile = document.querySelector('.mobile-tab[data-page="'+page+'"]');
+  if (activeMobile) activeMobile.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  if (page === 'profissionais') carregarProfissionaisAdmin();
 };
 
 // ══════════════ AGENDA ══════════════
 let _agData = new Date(); _agData.setHours(0,0,0,0);
 let _agsAtuais = [];
 function agDs(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function initAgenda(){ renderAgLbl(); carregarAgenda(); }
+function initAgenda(){
+  const picker = document.getElementById('ag-date-picker');
+  if (picker && !picker.dataset.ready) {
+    picker.dataset.ready = '1';
+    picker.addEventListener('change', () => {
+      if (!picker.value) return;
+      const [year,month,day] = picker.value.split('-').map(Number);
+      _agData = new Date(year, month-1, day);
+      _agData.setHours(0,0,0,0);
+      renderAgLbl();
+      carregarAgenda();
+    });
+  }
+  renderAgLbl();
+  carregarAgenda();
+}
 window.agMudarDia = (dir) => { _agData.setDate(_agData.getDate()+dir); renderAgLbl(); carregarAgenda(); };
 window.agIrHoje = () => { _agData = new Date(); _agData.setHours(0,0,0,0); renderAgLbl(); carregarAgenda(); };
 function renderAgLbl(){
   const d = _agData;
-  document.getElementById('ag-date-lbl').textContent = `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`;
+  document.getElementById('ag-date-lbl').textContent = d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}).replace('.', '');
+  const picker = document.getElementById('ag-date-picker');
+  if (picker) picker.value = agDs(d);
 }
 async function carregarAgenda(){
   const list = document.getElementById('ag-list');
@@ -661,7 +1001,7 @@ async function carregarAgenda(){
     const snap = await getDocs(query(collection(db,'agendamentos'), where('data','==',ds)));
     _agsAtuais = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
     await Promise.all(_agsAtuais.map(a => setDoc(doc(db,'agenda_publica',a.id), {
-      data:a.data, hora:a.hora, duracao:Number(a.duracao||30), status:a.status||'confirmado'
+      data:a.data, hora:a.hora, duracao:Number(a.duracao||30), profissionalId:a.profissionalId||'maykon-castro', status:a.status||'confirmado'
     }, {merge:true}).catch(()=>null)));
     if (!_agsAtuais.length) { list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>'; return; }
     list.innerHTML = _agsAtuais.map(a => `
@@ -669,7 +1009,7 @@ async function carregarAgenda(){
         <div class="ag-hora">${a.hora}</div>
         <div>
           <div class="ag-nome">${a.nome}</div>
-          <div class="ag-serv">${a.servicoNome||''} · ${a.tel||''}${a.formaPagamento?' · '+a.formaPagamento:''}</div>
+          <div class="ag-serv">${a.servicoNome||''} · ${a.profissionalNome||'Maykon Castro'} · ${a.tel||''}${a.formaPagamento?' · '+a.formaPagamento:''}</div>
         </div>
         <div class="ag-status ${a.status}">${a.status}</div>
         <div class="ag-actions">
@@ -732,6 +1072,122 @@ window.confirmarConclusao = async () => {
     carregarAgenda();
   } catch(e) { toast('Erro ao concluir.','error'); }
 };
+
+
+// ══════════════ PROFISSIONAIS ══════════════
+let _profissionaisAdmin = [];
+
+async function carregarProfissionaisAdmin(){
+  const grid = document.getElementById('profissionais-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="empty-state">Carregando profissionais...</div>';
+  try {
+    const snap = await getDocs(collection(db,'profissionais'));
+    _profissionaisAdmin = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+    if (!_profissionaisAdmin.length) {
+      grid.innerHTML = `
+        <article class="professional-admin-card default-card">
+          <img src="assets/maykon-castro.webp" alt="Maykon Castro">
+          <div class="professional-admin-content">
+            <span class="professional-admin-kicker">Cadastro padrão disponível</span>
+            <h3>Maykon Castro</h3>
+            <p>Cabeleireiro e especialista em cuidados masculinos e femininos</p>
+            <div class="professional-admin-actions">
+              <button class="btn btn-gold btn-sm" onclick="importarMaykonPadrao()">Cadastrar no Firestore</button>
+            </div>
+          </div>
+        </article>`;
+      return;
+    }
+    grid.innerHTML = _profissionaisAdmin.map(p=>`
+      <article class="professional-admin-card">
+        <img src="${p.foto||'assets/maykon-castro.webp'}" alt="${p.nome||'Profissional'}">
+        <div class="professional-admin-content">
+          <span class="professional-admin-kicker">${p.ativo?'Disponível no site':'Oculto no site'}</span>
+          <h3>${p.nome||'-'}</h3>
+          <p>${p.especialidade||'Profissional do MC Bem Estar Studio'}</p>
+          <div class="professional-admin-actions">
+            <span class="badge ${p.ativo?'on':'off'}">${p.ativo?'Ativo':'Inativo'}</span>
+            <button class="btn btn-ghost btn-sm" onclick="editarProfissional('${p.id}')">Editar</button>
+            <button class="btn btn-ghost btn-sm danger-btn" onclick="excluirProfissional('${p.id}')">Excluir</button>
+          </div>
+        </div>
+      </article>`).join('');
+  } catch(e) {
+    console.error(e);
+    grid.innerHTML = '<div class="empty-state">Erro ao carregar profissionais.</div>';
+  }
+}
+
+window.importarMaykonPadrao = async () => {
+  if (_profissionaisAdmin.some(p => (p.nome||'').toLowerCase() === 'maykon castro')) {
+    toast('Maykon Castro já está cadastrado.'); return;
+  }
+  try {
+    await setDoc(doc(db,'profissionais','maykon-castro'), PROFISSIONAL_PADRAO);
+    toast('Maykon Castro cadastrado com sucesso.');
+    carregarProfissionaisAdmin();
+  } catch(e) { toast('Erro ao cadastrar profissional.','error'); }
+};
+
+window.abrirModalProfissional = () => {
+  document.getElementById('mp-title').textContent = 'Novo Profissional';
+  document.getElementById('mp-id').value = '';
+  document.getElementById('mp-nome').value = '';
+  document.getElementById('mp-especialidade').value = '';
+  document.getElementById('mp-foto').value = 'assets/maykon-castro.webp';
+  document.getElementById('mp-ordem').value = (_profissionaisAdmin.length||0)+1;
+  document.getElementById('mp-ativo').checked = true;
+  document.getElementById('mp-preview').src = 'assets/maykon-castro.webp';
+  abrirModal('modal-profissional');
+};
+
+window.editarProfissional = (id) => {
+  const p = _profissionaisAdmin.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('mp-title').textContent = 'Editar Profissional';
+  document.getElementById('mp-id').value = p.id;
+  document.getElementById('mp-nome').value = p.nome||'';
+  document.getElementById('mp-especialidade').value = p.especialidade||'';
+  document.getElementById('mp-foto').value = p.foto||'assets/maykon-castro.webp';
+  document.getElementById('mp-ordem').value = p.ordem||1;
+  document.getElementById('mp-ativo').checked = !!p.ativo;
+  document.getElementById('mp-preview').src = p.foto||'assets/maykon-castro.webp';
+  abrirModal('modal-profissional');
+};
+
+window.salvarProfissional = async () => {
+  const id = document.getElementById('mp-id').value;
+  const nome = document.getElementById('mp-nome').value.trim();
+  if (!nome) { toast('Informe o nome do profissional.','error'); return; }
+  const data = {
+    nome,
+    especialidade: document.getElementById('mp-especialidade').value.trim(),
+    foto: document.getElementById('mp-foto').value.trim()||'assets/maykon-castro.webp',
+    ordem: parseInt(document.getElementById('mp-ordem').value)||1,
+    ativo: document.getElementById('mp-ativo').checked
+  };
+  try {
+    if (id) await updateDoc(doc(db,'profissionais',id), data);
+    else await addDoc(collection(db,'profissionais'), data);
+    toast('Profissional salvo.');
+    fecharModal('modal-profissional');
+    carregarProfissionaisAdmin();
+  } catch(e) { toast('Erro ao salvar profissional.','error'); }
+};
+
+window.excluirProfissional = async (id) => {
+  if (!confirm('Excluir este profissional?')) return;
+  try {
+    await deleteDoc(doc(db,'profissionais',id));
+    toast('Profissional excluído.');
+    carregarProfissionaisAdmin();
+  } catch(e) { toast('Erro ao excluir profissional.','error'); }
+};
+
+document.getElementById('mp-foto')?.addEventListener('input', event => {
+  document.getElementById('mp-preview').src = event.target.value.trim() || 'assets/maykon-castro.webp';
+});
 
 // ══════════════ SERVIÇOS ══════════════
 let _servicosAdmin = [];
@@ -820,7 +1276,7 @@ async function initHorarios(){
     </label>`).join('');
   try {
     const snap = await getDoc(doc(db,'config','horarios'));
-    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00' };
+    const h = snap.exists() ? snap.data() : { diasAtivos:[1,2,3,4,5,6], inicio:'07:00', fim:'19:00', intervalo:30 };
     (h.diasAtivos||[]).forEach(i => { const c=document.getElementById('hd-'+i); if(c) c.checked=true; });
     document.getElementById('hor-inicio').value = h.inicio||'07:00';
     document.getElementById('hor-fim').value = h.fim||'19:00';
@@ -832,7 +1288,8 @@ window.salvarHorarios = async () => {
   const data = {
     diasAtivos,
     inicio: document.getElementById('hor-inicio').value,
-    fim: document.getElementById('hor-fim').value
+    fim: document.getElementById('hor-fim').value,
+    intervalo: 30
   };
   try { await setDoc(doc(db,'config','horarios'), data); toast('Configuração salva.'); }
   catch(e){ toast('Erro ao salvar.','error'); }
