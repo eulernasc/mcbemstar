@@ -600,16 +600,22 @@ button{-webkit-tap-highlight-color:transparent;}
 .whatsapp-bubble small{display:block;margin-top:7px;opacity:.72;font-size:8px;text-transform:uppercase;letter-spacing:.08em}
 .whatsapp-bubble pre{margin:0;white-space:pre-wrap;font:10px/1.55 'Manrope',sans-serif}
 @media(max-width:720px){
-  .calendar-page-head{margin-bottom:10px}.calendar-mobile-help{display:none}
-  .calendar-view-switch{display:none}.calendar-toolbar{margin-bottom:8px}
+  .calendar-page-head{margin-bottom:10px}
+  .calendar-mobile-help{display:block;margin:0 0 9px;padding:8px 10px;border-radius:10px;background:#f8f3e7;color:#746a57}
+  .calendar-toolbar{margin-bottom:8px}
+  .calendar-view-switch{display:grid;grid-template-columns:1fr 1fr;margin-top:9px;position:sticky;top:calc(var(--mobile-header-height) + 64px);z-index:24;box-shadow:0 8px 22px rgba(45,39,27,.10)}
+  .calendar-view-btn{min-height:38px}
   .calendar-shell{margin-left:-10px;margin-right:-10px;border-radius:0;border-left:0;border-right:0}
-  .calendar-scroll{height:calc(100dvh - 235px);max-height:none;min-height:480px}
+  .calendar-scroll{height:calc(100dvh - 285px);max-height:none;min-height:450px;touch-action:pan-x pan-y;scrollbar-gutter:stable}
+  .calendar-grid:not(.day-mode){grid-template-columns:58px repeat(var(--calendar-days,6),124px);min-width:802px}
   .calendar-grid.day-mode{grid-template-columns:58px minmax(0,1fr);min-width:100%}
-  .calendar-grid.day-mode .calendar-corner{font-size:8px}
+  .calendar-corner{font-size:8px;padding:0 3px}
   .calendar-grid.day-mode .calendar-event{left:5px;right:5px}
   .calendar-grid.day-mode .calendar-event strong{font-size:12px}
   .calendar-grid.day-mode .calendar-event span{font-size:10px}
   .calendar-time-label{padding-right:7px;font-size:9px}
+  .calendar-time-label:first-child{top:8px!important;transform:none}
+  .calendar-time-label:last-child{top:calc(var(--calendar-height) - 8px)!important;transform:translateY(-100%)}
   .whatsapp-admin-head{grid-template-columns:1fr;padding:13px}.whatsapp-row{grid-template-columns:42px minmax(0,1fr);padding:13px}.whatsapp-avatar{width:40px;height:40px}.whatsapp-meta{grid-column:2;display:flex;align-items:center;justify-content:space-between}
 }
 </style>
@@ -1284,8 +1290,10 @@ window.showPage = (page, el) => {
 
 // ══════════════ AGENDA ══════════════
 let _agData = new Date(); _agData.setHours(0,0,0,0);
-let _agVisualizacao = window.innerWidth <= 900 ? 'day' : 'week';
-window.addEventListener('resize',()=>{if(window.innerWidth<=900 && _agVisualizacao!=='day'){_agVisualizacao='day';carregarAgenda();}});
+const _agVisualizacaoSalva = localStorage.getItem('mc_agenda_visualizacao');
+let _agVisualizacao = ['day','week'].includes(_agVisualizacaoSalva)
+  ? _agVisualizacaoSalva
+  : (window.innerWidth <= 900 ? 'day' : 'week');
 let _agsAtuais = [];
 let _agHorarioConfig = JSON.parse(JSON.stringify(HORARIOS_PADRAO));
 let _agDetalheId = null;
@@ -1329,8 +1337,16 @@ function initAgenda(){
 }
 window.agDefinirVisualizacao=(modo,recarregar=true)=>{
   _agVisualizacao=modo==='day'?'day':'week';
+  localStorage.setItem('mc_agenda_visualizacao',_agVisualizacao);
   document.getElementById('agenda-view-week')?.classList.toggle('active',_agVisualizacao==='week');
   document.getElementById('agenda-view-day')?.classList.toggle('active',_agVisualizacao==='day');
+  document.querySelector('.calendar-mobile-help')?.replaceChildren(
+    document.createTextNode(
+      _agVisualizacao==='week'
+        ? 'Arraste a agenda para os lados para visualizar todos os dias da semana.'
+        : 'Use “Semana” para comparar os dias ou permaneça em “Dia” para mais espaço.'
+    )
+  );
   if(recarregar) carregarAgenda();
 };
 window.agNavegar=(direcao)=>{
