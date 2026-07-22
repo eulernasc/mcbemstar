@@ -618,6 +618,118 @@ button{-webkit-tap-highlight-color:transparent;}
   .calendar-time-label:last-child{top:calc(var(--calendar-height) - 8px)!important;transform:translateY(-100%)}
   .whatsapp-admin-head{grid-template-columns:1fr;padding:13px}.whatsapp-row{grid-template-columns:42px minmax(0,1fr);padding:13px}.whatsapp-avatar{width:40px;height:40px}.whatsapp-meta{grid-column:2;display:flex;align-items:center;justify-content:space-between}
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   AGENDA MOBILE V3.2 — ROLAGEM CONTIDA E LANDSCAPE ESTÁVEL
+   ══════════════════════════════════════════════════════════════ */
+html,body{width:100%;max-width:100%;overflow-x:clip;}
+#app-shell,.main,.page,#page-agenda{min-width:0;max-width:100%;}
+.calendar-shell{
+  width:100%;max-width:100%;min-width:0;
+  overflow:hidden!important;
+  position:relative;
+  contain:paint;
+  isolation:isolate;
+  background:#fff;
+}
+.calendar-scroll{
+  width:100%;max-width:100%;
+  position:relative;
+  overflow:auto!important;
+  overflow-anchor:none;
+  overscroll-behavior:contain;
+  overscroll-behavior-x:contain;
+  overscroll-behavior-y:contain;
+  touch-action:pan-x pan-y;
+  -webkit-overflow-scrolling:touch;
+  background:#fff;
+  scrollbar-gutter:auto;
+}
+.calendar-grid{margin:0;}
+.calendar-corner,.calendar-day-head,.calendar-time-axis{backface-visibility:hidden;}
+
+@media(max-width:720px){
+  .calendar-shell{
+    margin-left:0!important;
+    margin-right:0!important;
+    border:1px solid rgba(179,138,47,.22)!important;
+    border-radius:14px!important;
+  }
+  .calendar-scroll{
+    min-height:0!important;
+    max-height:none!important;
+  }
+  .calendar-grid:not(.day-mode){
+    grid-template-columns:58px repeat(var(--calendar-days,6),132px)!important;
+    min-width:850px!important;
+  }
+  .calendar-grid.day-mode{
+    grid-template-columns:58px minmax(0,1fr)!important;
+    min-width:100%!important;
+  }
+}
+
+/* Celular deitado: cabeçalho compacto e calendário dentro da tela. */
+@media(max-width:1100px) and (orientation:landscape) and (max-height:600px){
+  :root{--mobile-header-height:56px;}
+  .mob-topbar{
+    min-height:56px;
+    padding:5px max(12px,env(safe-area-inset-right)) 5px max(12px,env(safe-area-inset-left));
+  }
+  .mob-brand img{width:45px;height:32px;}
+  .mob-brand-copy strong{font-size:16px;}
+  .mob-brand-copy span{font-size:7px;}
+  .mob-burger{height:38px;min-width:82px;}
+  .mobile-tabs{
+    top:56px;
+    padding:5px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));
+  }
+  .mobile-tab{min-height:34px;padding:0 11px;font-size:9px;}
+  .main{
+    padding-top:108px!important;
+    padding-left:max(10px,env(safe-area-inset-left))!important;
+    padding-right:max(10px,env(safe-area-inset-right))!important;
+    padding-bottom:36px!important;
+  }
+  .calendar-page-head{display:none!important;}
+  .calendar-toolbar{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+    align-items:center;
+    margin-bottom:7px!important;
+  }
+  .calendar-nav-group{
+    display:grid!important;
+    grid-template-columns:36px minmax(155px,1fr) 36px 66px!important;
+    gap:6px!important;
+  }
+  .calendar-nav-btn,.calendar-period-picker,.calendar-today-btn{height:36px!important;min-height:36px!important;}
+  .calendar-nav-btn{width:36px!important;}
+  .calendar-period-picker{font-size:16px!important;}
+  .calendar-today-btn{grid-column:auto!important;width:66px!important;padding:0 8px!important;}
+  .calendar-view-switch{
+    position:static!important;
+    margin:0!important;
+    grid-template-columns:72px 72px!important;
+    box-shadow:none!important;
+  }
+  .calendar-view-btn{height:32px!important;min-height:32px!important;padding:0 8px!important;}
+  .calendar-legend{display:none!important;}
+  .calendar-mobile-help{display:none!important;}
+  .calendar-shell{border-radius:12px!important;}
+  .calendar-corner,.calendar-day-head{height:56px!important;}
+  .calendar-day-head strong{font-size:19px!important;}
+  .calendar-grid:not(.day-mode){
+    grid-template-columns:58px repeat(var(--calendar-days,6),132px)!important;
+    min-width:850px!important;
+  }
+  .calendar-summary{margin-top:8px!important;}
+  .calendar-summary-card{padding:8px 10px!important;}
+  .calendar-summary-card strong{font-size:19px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -1404,6 +1516,88 @@ function agEventoHtml(a,limiteInicio){
     <small>${agEscape(a.profissionalNome||'Maykon Castro')} · ${agStatusLabel(status)}</small>
   </button>`;
 }
+
+
+// Mantém a rolagem da agenda presa ao próprio calendário no celular.
+let _agScrollCleanup = null;
+function agAjustarViewportCalendario(host = document.getElementById('agenda-calendar')){
+  if(!host || !host.classList.contains('calendar-scroll')) return;
+  const largura = window.visualViewport?.width || window.innerWidth;
+  const altura = window.visualViewport?.height || window.innerHeight;
+  if(largura > 1100){
+    host.style.removeProperty('height');
+    return;
+  }
+  const paisagem = largura > altura;
+  const calculada = paisagem
+    ? Math.max(230, Math.min(430, altura - 150))
+    : Math.max(440, Math.min(680, altura - 285));
+  host.style.height = `${Math.round(calculada)}px`;
+}
+function agConterRolagem(host = document.getElementById('agenda-calendar')){
+  if(!host || !host.classList.contains('calendar-scroll')) return;
+  if(_agScrollCleanup) _agScrollCleanup();
+  let inicioX = 0;
+  let inicioY = 0;
+  let eixo = '';
+  const margem = 1;
+  const aoIniciar = (evento) => {
+    if(evento.touches.length !== 1) return;
+    inicioX = evento.touches[0].clientX;
+    inicioY = evento.touches[0].clientY;
+    eixo = '';
+  };
+  const aoMover = (evento) => {
+    if(evento.touches.length !== 1) return;
+    const toque = evento.touches[0];
+    const dx = toque.clientX - inicioX;
+    const dy = toque.clientY - inicioY;
+    if(!eixo && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) eixo = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if(!eixo) return;
+
+    // Não deixa o gesto escapar para a página e arrastar o painel inteiro.
+    evento.stopPropagation();
+    if(eixo === 'x'){
+      const noInicio = host.scrollLeft <= margem;
+      const noFim = host.scrollLeft + host.clientWidth >= host.scrollWidth - margem;
+      if((noInicio && dx > 0) || (noFim && dx < 0)) evento.preventDefault();
+    }else{
+      const noTopo = host.scrollTop <= margem;
+      const noFim = host.scrollTop + host.clientHeight >= host.scrollHeight - margem;
+      if((noTopo && dy > 0) || (noFim && dy < 0)) evento.preventDefault();
+    }
+  };
+  const aoFinalizar = () => { eixo = ''; };
+  host.addEventListener('touchstart', aoIniciar, {passive:true});
+  host.addEventListener('touchmove', aoMover, {passive:false});
+  host.addEventListener('touchend', aoFinalizar, {passive:true});
+  host.addEventListener('touchcancel', aoFinalizar, {passive:true});
+  _agScrollCleanup = () => {
+    host.removeEventListener('touchstart', aoIniciar);
+    host.removeEventListener('touchmove', aoMover);
+    host.removeEventListener('touchend', aoFinalizar);
+    host.removeEventListener('touchcancel', aoFinalizar);
+  };
+  agAjustarViewportCalendario(host);
+}
+let _agResizeTimer;
+function agReajustarDepoisDeGirar(){
+  clearTimeout(_agResizeTimer);
+  _agResizeTimer = setTimeout(() => {
+    const host = document.getElementById('agenda-calendar');
+    document.documentElement.scrollLeft = 0;
+    document.body.scrollLeft = 0;
+    if(host?.classList.contains('calendar-scroll')){
+      agAjustarViewportCalendario(host);
+      host.scrollLeft = Math.max(0, Math.min(host.scrollLeft, host.scrollWidth - host.clientWidth));
+      host.scrollTop = Math.max(0, Math.min(host.scrollTop, host.scrollHeight - host.clientHeight));
+    }
+  }, 180);
+}
+window.addEventListener('orientationchange', agReajustarDepoisDeGirar);
+window.addEventListener('resize', agReajustarDepoisDeGirar);
+window.visualViewport?.addEventListener('resize', agReajustarDepoisDeGirar);
+
 function agRenderCalendario(periodo){
   const host=document.getElementById('agenda-calendar');
   const limites=agLimites(periodo);
@@ -1430,6 +1624,7 @@ function agRenderCalendario(periodo){
     <div class="calendar-corner">Horário</div>${cabecalhos}
     <div class="calendar-time-axis" style="--calendar-height:${altura}px">${labels.join('')}</div>${colunas}
   </div>`;
+  agConterRolagem(host);
   if(_agVisualizacao==='day') host.scrollLeft=0;
   else {
     const selecionado=periodo.dias.findIndex(d=>agDs(d)===agDs(_agData));
