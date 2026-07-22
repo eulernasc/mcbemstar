@@ -1,12 +1,14 @@
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret, defineString} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
-const admin = require("firebase-admin");
+const {initializeApp} = require("firebase-admin/app");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const crypto = require("crypto");
 
-admin.initializeApp();
-const db = admin.firestore();
+initializeApp();
+const db = getFirestore();
 
 const REGION = "southamerica-east1";
 const ZAPI_INSTANCE_ID = defineSecret("ZAPI_INSTANCE_ID");
@@ -108,9 +110,7 @@ async function sendManagementButtons(phone, bookingId, token) {
   });
 }
 
-function bookingMessage(booking, token) {
-  const manageUrl = managementLink(token);
-
+function bookingMessage(booking) {
   return `Olá, ${booking.nome || "Cliente"}! 👋\n\n` +
     "Seu agendamento foi confirmado com sucesso.\n\n" +
     `💈 Serviço: ${booking.servicoNome || "Serviço"}\n` +
@@ -119,8 +119,23 @@ function bookingMessage(booking, token) {
     `⏰ Horário: ${booking.hora || ""}\n\n` +
     "Sabemos que imprevistos acontecem. Se precisar alterar o horário, " +
     "use os botões enviados logo abaixo.\n\n" +
-    `Se os botões não aparecerem, acesse: ${manageUrl}\n\n` +
     "Até breve!\nEquipe MC Bem Estar Studio";
+}
+
+async function logWhatsAppMessage({bookingId, booking, type, message, status = "enviado", error = "", messageId = ""}) {
+  await db.collection("whatsapp_mensagens").add({
+    agendamentoId: bookingId,
+    clienteNome: booking.nome || "Cliente",
+    telefone: digits(booking.whatsappDestino || booking.tel || booking.telefone),
+    tipo: type,
+    mensagem: message,
+    status,
+    erro: error,
+    zapiMessageId: messageId,
+    dataAgendamento: booking.data || "",
+    horaAgendamento: booking.hora || "",
+    criadoEm: FieldValue.serverTimestamp(),
+  });
 }
 
 async function sendBookingConfirmation(bookingId, booking, ref) {
@@ -140,7 +155,8 @@ async function sendBookingConfirmation(bookingId, booking, ref) {
     whatsappErro: "",
   }, {merge: true});
 
-  const textResponse = await sendText(phone, bookingMessage(booking, token));
+  const confirmationText = bookingMessage(booking);
+  const textResponse = await sendText(phone, confirmationText);
 
   let buttonsResponse = null;
   let buttonsError = "";
@@ -159,6 +175,14 @@ async function sendBookingConfirmation(bookingId, booking, ref) {
   const buttonsMessageId = buttonsResponse?.messageId ||
     buttonsResponse?.zaapId || buttonsResponse?.id || "";
 
+  await logWhatsAppMessage({
+    bookingId,
+    booking,
+    type: "confirmacao",
+    message: confirmationText,
+    messageId,
+  });
+
   await ref.set({
     status: "confirmado",
     whatsappConfirmacaoStatus: "enviado",
@@ -166,7 +190,7 @@ async function sendBookingConfirmation(bookingId, booking, ref) {
     whatsappBotoesStatus: buttonsResponse ? "enviado" : "falha",
     whatsappMensagemId: messageId,
     whatsappBotoesMensagemId: buttonsMessageId,
-    whatsappEnviadoEm: admin.firestore.FieldValue.serverTimestamp(),
+    whatsappEnviadoEm: FieldValue.serverTimestamp(),
     whatsappErro: "",
     whatsappBotoesErro: buttonsError,
   }, {merge: true});
@@ -228,6 +252,14 @@ exports.enviarConfirmacaoAgendamento = onDocumentCreated({
       whatsappStatus: "erro_envio",
       whatsappErro: message,
     }, {merge: true});
+    await logWhatsAppMessage({
+      bookingId: event.params.agendamentoId,
+      booking,
+      type: "confirmacao",
+      message: bookingMessage(booking),
+      status: "falha",
+      error: message,
+    });
   }
 });
 
@@ -333,6 +365,110 @@ async function availableSlots(booking, date) {
   return result;
 }
 
+
+function appointmentDateTime(booking) {
+  if (!booking.data || !booking.hora) return null;
+  const date = new Date(`${booking.data}T${booking.hora}:00-03:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function reminderMessage(booking, hours) {
+  const title = hours === 24 ? "Lembrete do seu agendamento de amanhã" : "Seu atendimento é daqui a 2 horas";
+  return `Olá, ${booking.nome || "Cliente"}! 👋\n\n` +
+    `${title}.\n\n` +
+    `💈 Serviço: ${booking.servicoNome || "Serviço"}\n` +
+    `👤 Profissional: ${booking.profissionalNome || "Maykon Castro"}\n` +
+    `📅 Data: ${brDate(booking.data)}\n` +
+    `⏰ Horário: ${booking.hora || ""}\n\n` +
+    "Caso aconteça algum imprevisto, use os botões enviados logo abaixo.\n\n" +
+    "Até breve!\nEquipe MC Bem Estar Studio";
+}
+
+async function sendReminder(docSnapshot, hours) {
+  const booking = docSnapshot.data();
+  const field = hours === 24 ? "whatsappLembrete24hEnviadoEm" : "whatsappLembrete2hEnviadoEm";
+  if (booking[field]) return false;
+
+  const phone = digits(booking.whatsappDestino || booking.tel || booking.telefone);
+  if (!phone) return false;
+  const token = booking.whatsappAcaoToken || randomToken();
+  if (!booking.whatsappAcaoToken) {
+    await docSnapshot.ref.set({whatsappAcaoToken: token}, {merge: true});
+  }
+
+  const message = reminderMessage(booking, hours);
+  try {
+    const response = await sendText(phone, message);
+    await sendManagementButtons(phone, docSnapshot.id, token);
+    await docSnapshot.ref.set({
+      [field]: FieldValue.serverTimestamp(),
+      [`whatsappLembrete${hours}hStatus`]: "enviado",
+    }, {merge: true});
+    await logWhatsAppMessage({
+      bookingId: docSnapshot.id,
+      booking,
+      type: hours === 24 ? "lembrete_24h" : "lembrete_2h",
+      message,
+      messageId: response.messageId || response.zaapId || response.id || "",
+    });
+    return true;
+  } catch (error) {
+    const errorMessage = String(error.message || error).slice(0, 500);
+    await docSnapshot.ref.set({
+      [`whatsappLembrete${hours}hStatus`]: "falha",
+      [`whatsappLembrete${hours}hErro`]: errorMessage,
+    }, {merge: true});
+    await logWhatsAppMessage({
+      bookingId: docSnapshot.id,
+      booking,
+      type: hours === 24 ? "lembrete_24h" : "lembrete_2h",
+      message,
+      status: "falha",
+      error: errorMessage,
+    });
+    return false;
+  }
+}
+
+exports.processarLembretesAgendamentos = onSchedule({
+  schedule: "every 15 minutes",
+  timeZone: "America/Sao_Paulo",
+  region: REGION,
+  secrets: [ZAPI_INSTANCE_ID, ZAPI_INSTANCE_TOKEN, ZAPI_CLIENT_TOKEN],
+  maxInstances: 1,
+}, async () => {
+  const now = new Date();
+  const localDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(now);
+  const tomorrow = new Date(`${localDate}T12:00:00-03:00`);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowKey = tomorrow.toISOString().slice(0, 10);
+
+  const snapshots = await Promise.all([
+    db.collection("agendamentos").where("data", "==", localDate).get(),
+    db.collection("agendamentos").where("data", "==", tomorrowKey).get(),
+  ]);
+
+  const docs = new Map();
+  snapshots.forEach((snapshot) => snapshot.docs.forEach((doc) => docs.set(doc.id, doc)));
+
+  for (const docSnapshot of docs.values()) {
+    const booking = docSnapshot.data();
+    if (["cancelado", "concluido"].includes(booking.status)) continue;
+    const appointment = appointmentDateTime(booking);
+    if (!appointment) continue;
+    const diffHours = (appointment.getTime() - now.getTime()) / 3600000;
+
+    if (diffHours > 23.7 && diffHours <= 24.25) {
+      await sendReminder(docSnapshot, 24);
+    }
+    if (diffHours > 1.7 && diffHours <= 2.25) {
+      await sendReminder(docSnapshot, 2);
+    }
+  }
+});
+
 exports.gerenciarAgendamento = onCall({
   region: REGION,
   secrets: [ZAPI_INSTANCE_ID, ZAPI_INSTANCE_TOKEN, ZAPI_CLIENT_TOKEN],
@@ -372,17 +508,25 @@ exports.gerenciarAgendamento = onCall({
     await booking.ref.set({
       status: "cancelado",
       whatsappRespostaStatus: "cancelado_pelo_cliente",
-      canceladoEm: admin.firestore.FieldValue.serverTimestamp(),
+      canceladoEm: FieldValue.serverTimestamp(),
     }, {merge: true});
     await updatePublicMirror(booking.id, {status: "cancelado"});
 
     try {
-      await sendText(
+      const cancelMessage = `Olá, ${booking.data.nome || "Cliente"}. ` +
+        "Seu agendamento foi desmarcado com sucesso. " +
+        "Quando quiser, faça uma nova reserva pelo nosso site.";
+      const response = await sendText(
           booking.data.whatsappDestino || booking.data.tel,
-          `Olá, ${booking.data.nome || "Cliente"}. ` +
-          "Seu agendamento foi desmarcado com sucesso. " +
-          "Quando quiser, faça uma nova reserva pelo nosso site.",
+          cancelMessage,
       );
+      await logWhatsAppMessage({
+        bookingId: booking.id,
+        booking: booking.data,
+        type: "cancelamento",
+        message: cancelMessage,
+        messageId: response.messageId || response.zaapId || response.id || "",
+      });
     } catch (error) {
       logger.warn("Cancelamento salvo, mas o aviso não foi enviado.", {
         agendamentoId: booking.id,
@@ -425,7 +569,7 @@ exports.gerenciarAgendamento = onCall({
       hora: time,
       status: "confirmado",
       whatsappRespostaStatus: "remarcado_pelo_cliente",
-      remarcadoEm: admin.firestore.FieldValue.serverTimestamp(),
+      remarcadoEm: FieldValue.serverTimestamp(),
     }, {merge: true});
     await updatePublicMirror(booking.id, {
       data: date,
@@ -441,7 +585,17 @@ exports.gerenciarAgendamento = onCall({
         `📅 Nova data: ${brDate(date)}\n` +
         `⏰ Novo horário: ${time}\n\n` +
         "Até breve!\nEquipe MC Bem Estar Studio";
-      await sendText(updatedBooking.whatsappDestino || updatedBooking.tel, message);
+      const response = await sendText(
+          updatedBooking.whatsappDestino || updatedBooking.tel,
+          message,
+      );
+      await logWhatsAppMessage({
+        bookingId: booking.id,
+        booking: updatedBooking,
+        type: "remarcacao",
+        message,
+        messageId: response.messageId || response.zaapId || response.id || "",
+      });
     } catch (error) {
       logger.warn("Remarcação salva, mas o aviso não foi enviado.", {
         agendamentoId: booking.id,

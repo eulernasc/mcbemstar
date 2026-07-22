@@ -424,7 +424,7 @@ function formatPhone(value) {
 
 function showBookingSuccess({ name, phone }) {
   const [year, month, day] = state.selectedDate.split("-");
-  $("success-copy").textContent = `${name}, seu horário já está confirmado. Você receberá no WhatsApp informado os dados do atendimento e as opções para remarcar ou desmarcar.`;
+  $("success-copy").textContent = `${name}, seu agendamento foi registrado. Você receberá no WhatsApp informado uma mensagem para confirmar, remarcar ou cancelar o horário.`;
   $("success-details").innerHTML = `
     <div><span>Profissional</span><strong>${escapeHtml(state.selectedProfessional.nome)}</strong></div>
     <div><span>Serviço</span><strong>${escapeHtml(state.selectedService.nome)}</strong></div>
@@ -476,7 +476,7 @@ async function confirmBooking() {
       profissionalNome: state.selectedProfessional.nome,
       data: state.selectedDate,
       hora: state.selectedTime,
-      status: "confirmado",
+      status: "aguardando",
       whatsappDestino: phone,
       whatsappConfirmacaoStatus: "pendente_envio",
       whatsappRespostaStatus: "aguardando",
@@ -487,7 +487,7 @@ async function confirmBooking() {
       hora: state.selectedTime,
       duracao: Number(state.selectedService.duracao || 30),
       profissionalId: state.selectedProfessional.id,
-      status: "confirmado"
+      status: "aguardando"
     }).catch(error => console.warn("Agenda pública não pôde ser espelhada.", error));
 
     closeBooking();

@@ -55,6 +55,11 @@ service cloud.firestore {
         && request.resource.data.status in ['aguardando','confirmado'];
     }
 
+    match /whatsapp_mensagens/{id} {
+      allow read: if admin();
+      allow write: if false;
+    }
+
     match /financeiro/{id} {
       allow read, write: if admin();
     }
