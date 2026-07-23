@@ -621,7 +621,7 @@ button{-webkit-tap-highlight-color:transparent;}
 
 
 /* ══════════════════════════════════════════════════════════════
-   AGENDA MOBILE V3.2 — ROLAGEM CONTIDA E LANDSCAPE ESTÁVEL
+   AGENDA MOBILE V3.3 — ROLAGEM SEM INÉRCIA E LANDSCAPE ESTÁVEL
    ══════════════════════════════════════════════════════════════ */
 html,body{width:100%;max-width:100%;overflow-x:clip;}
 #app-shell,.main,.page,#page-agenda{min-width:0;max-width:100%;}
@@ -642,9 +642,17 @@ html,body{width:100%;max-width:100%;overflow-x:clip;}
   overscroll-behavior-x:contain;
   overscroll-behavior-y:contain;
   touch-action:pan-x pan-y;
-  -webkit-overflow-scrolling:touch;
+  -webkit-overflow-scrolling:auto;
+  scroll-behavior:auto!important;
   background:#fff;
   scrollbar-gutter:auto;
+}
+/* No celular, a rolagem é controlada diretamente pelo toque para parar
+   no mesmo instante em que o dedo sai da tela, sem inércia. */
+.calendar-scroll.agenda-manual-scroll{
+  touch-action:none!important;
+  -webkit-overflow-scrolling:auto!important;
+  scroll-behavior:auto!important;
 }
 .calendar-grid{margin:0;}
 .calendar-corner,.calendar-day-head,.calendar-time-axis{backface-visibility:hidden;}
@@ -1537,47 +1545,83 @@ function agAjustarViewportCalendario(host = document.getElementById('agenda-cale
 function agConterRolagem(host = document.getElementById('agenda-calendar')){
   if(!host || !host.classList.contains('calendar-scroll')) return;
   if(_agScrollCleanup) _agScrollCleanup();
+
+  const usarRolagemManual = window.matchMedia?.('(pointer: coarse)').matches ||
+    ('ontouchstart' in window && window.innerWidth <= 1100);
+
+  if(!usarRolagemManual){
+    host.classList.remove('agenda-manual-scroll');
+    agAjustarViewportCalendario(host);
+    return;
+  }
+
+  host.classList.add('agenda-manual-scroll');
+
   let inicioX = 0;
   let inicioY = 0;
+  let scrollInicialX = 0;
+  let scrollInicialY = 0;
   let eixo = '';
-  const margem = 1;
+  let arrastando = false;
+
   const aoIniciar = (evento) => {
     if(evento.touches.length !== 1) return;
-    inicioX = evento.touches[0].clientX;
-    inicioY = evento.touches[0].clientY;
+    const toque = evento.touches[0];
+    inicioX = toque.clientX;
+    inicioY = toque.clientY;
+    scrollInicialX = host.scrollLeft;
+    scrollInicialY = host.scrollTop;
     eixo = '';
+    arrastando = true;
   };
+
   const aoMover = (evento) => {
-    if(evento.touches.length !== 1) return;
+    if(!arrastando || evento.touches.length !== 1) return;
     const toque = evento.touches[0];
     const dx = toque.clientX - inicioX;
     const dy = toque.clientY - inicioY;
-    if(!eixo && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) eixo = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+
+    if(!eixo && (Math.abs(dx) > 4 || Math.abs(dy) > 4)){
+      eixo = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
     if(!eixo) return;
 
-    // Não deixa o gesto escapar para a página e arrastar o painel inteiro.
+    // Cancela a rolagem nativa do Safari/Chrome e move apenas a agenda.
+    // Como não há animação nem velocidade acumulada, ela para imediatamente
+    // quando o dedo é retirado da tela.
+    evento.preventDefault();
     evento.stopPropagation();
+
     if(eixo === 'x'){
-      const noInicio = host.scrollLeft <= margem;
-      const noFim = host.scrollLeft + host.clientWidth >= host.scrollWidth - margem;
-      if((noInicio && dx > 0) || (noFim && dx < 0)) evento.preventDefault();
+      const maximoX = Math.max(0, host.scrollWidth - host.clientWidth);
+      host.scrollLeft = Math.max(0, Math.min(maximoX, scrollInicialX - dx));
     }else{
-      const noTopo = host.scrollTop <= margem;
-      const noFim = host.scrollTop + host.clientHeight >= host.scrollHeight - margem;
-      if((noTopo && dy > 0) || (noFim && dy < 0)) evento.preventDefault();
+      const maximoY = Math.max(0, host.scrollHeight - host.clientHeight);
+      host.scrollTop = Math.max(0, Math.min(maximoY, scrollInicialY - dy));
     }
   };
-  const aoFinalizar = () => { eixo = ''; };
+
+  const aoFinalizar = () => {
+    arrastando = false;
+    eixo = '';
+    // Reatribuir a posição atual elimina qualquer impulso residual do navegador.
+    host.scrollLeft = host.scrollLeft;
+    host.scrollTop = host.scrollTop;
+  };
+
   host.addEventListener('touchstart', aoIniciar, {passive:true});
   host.addEventListener('touchmove', aoMover, {passive:false});
   host.addEventListener('touchend', aoFinalizar, {passive:true});
   host.addEventListener('touchcancel', aoFinalizar, {passive:true});
+
   _agScrollCleanup = () => {
+    host.classList.remove('agenda-manual-scroll');
     host.removeEventListener('touchstart', aoIniciar);
     host.removeEventListener('touchmove', aoMover);
     host.removeEventListener('touchend', aoFinalizar);
     host.removeEventListener('touchcancel', aoFinalizar);
   };
+
   agAjustarViewportCalendario(host);
 }
 let _agResizeTimer;
